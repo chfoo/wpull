@@ -160,6 +160,7 @@ class Builder(object):
             AppSource(app_session),
             [
                 LoggingSetupTask(),
+                PluginSetupTask(),
                 DatabaseSetupTask(),
                 ParserSetupTask(),
                 WARCVisitsTask(),
@@ -175,7 +176,6 @@ class Builder(object):
                 ProxyServerSetupTask(),
                 CoprocessorSetupTask(),
                 LinkConversionSetupTask(),
-                PluginSetupTask(),
                 InputURLTask(),
                 URLFiltersPostURLImportSetupTask(),
             ])

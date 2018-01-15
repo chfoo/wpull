@@ -11,7 +11,7 @@ import logging
 
 import asyncio
 
-from typing import Optional
+from typing import Optional, Iterable
 
 from wpull.application.plugin import WpullPlugin, PluginFunctionCategory
 from wpull.backport.logging import BraceMessage as __
@@ -30,9 +30,10 @@ class HookAlreadyConnectedError(ValueError):
 
 class HookDispatcher(collections.abc.Mapping):
     '''Dynamic callback hook system.'''
-    def __init__(self, event_dispatcher_transclusion: Optional['EventDispatcher']=None):
+    def __init__(self, plugins: Optional[Iterable[WpullPlugin]] = [], event_dispatcher_transclusion: Optional['EventDispatcher']=None):
         super().__init__()
         self._callbacks = {}
+        self._plugins = plugins
         self._event_dispatcher = event_dispatcher_transclusion
 
     def __getitem__(self, key):
@@ -53,6 +54,11 @@ class HookDispatcher(collections.abc.Mapping):
 
         if self._event_dispatcher is not None:
             self._event_dispatcher.register(name)
+
+        for plugin in self._plugins:
+            for func, f_name, f_category in plugin.get_plugin_functions():
+                if f_category == PluginFunctionCategory.hook and f_name == name:
+                    self.connect(name, func)
 
     def unregister(self, name: str):
         '''Unregister hook.'''
@@ -102,8 +108,9 @@ class HookDispatcher(collections.abc.Mapping):
 
 
 class EventDispatcher(collections.abc.Mapping):
-    def __init__(self):
+    def __init__(self, plugins: Optional[Iterable[WpullPlugin]] = []):
         self._callbacks = {}
+        self._plugins = plugins
 
     def __getitem__(self, key):
         return self._callbacks[key]
@@ -119,6 +126,11 @@ class EventDispatcher(collections.abc.Mapping):
             raise ValueError('Event already registered')
 
         self._callbacks[name] = set()
+
+        for plugin in self._plugins:
+            for func, f_name, f_category in plugin.get_plugin_functions():
+                if f_category == PluginFunctionCategory.event and f_name == name:
+                    self.add_listener(name, func)
 
     def unregister(self, name: str):
         del self._callbacks[name]
@@ -138,10 +150,12 @@ class EventDispatcher(collections.abc.Mapping):
 
 
 class HookableMixin(object):
+    _plugins = [] # type: Iterable[WpullPlugin]
+
     def __init__(self):
         super().__init__()
-        self.event_dispatcher = EventDispatcher()
-        self.hook_dispatcher = HookDispatcher(event_dispatcher_transclusion=self.event_dispatcher)
+        self.event_dispatcher = EventDispatcher(plugins = self._plugins)
+        self.hook_dispatcher = HookDispatcher(event_dispatcher_transclusion=self.event_dispatcher, plugins = self._plugins)
 
     def connect_plugin(self, plugin: WpullPlugin):
         for func, name, category in plugin.get_plugin_functions():
@@ -155,6 +169,12 @@ class HookableMixin(object):
             elif category == PluginFunctionCategory.event and self.event_dispatcher.is_registered(name):
                 _logger.debug('Connected event %s %s', name, func)
                 self.event_dispatcher.add_listener(name, func)
+
+    @classmethod
+    def set_plugins(cls, plugins: Iterable[WpullPlugin]):
+        HookableMixin._plugins = plugins
+        # Note that HookableMixin is hardcoded here as the plugin list is always defined at the level of this class.
+        # If cls._plugins was used instead, calling set_plugins of a subclass would break unit tests, for example.
 
 
 class HookStop(Exception):

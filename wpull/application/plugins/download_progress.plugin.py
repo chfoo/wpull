@@ -36,17 +36,17 @@ class DownloadProgressPlugin(WpullPlugin):
             self._attach_event_listeners()
 
     def _attach_event_listeners(self):
-        http_client = cast(HTTPClient, self.app_session.factory['HTTPClient'])
-        http_client.event_dispatcher.add_listener(
-            HTTPClient.ClientEvent.new_session,
-            self._http_session_callback
-        )
+        class ProgressHTTPClient(self.app_session.factory.class_map['HTTPClient']):
+            def __init__(client_self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                client_self.event_dispatcher.add_listener(client_self.ClientEvent.new_session, self._http_session_callback)
+        self.app_session.factory.class_map['HTTPClient'] = ProgressHTTPClient
 
-        ftp_client = cast(FTPClient, self.app_session.factory['FTPClient'])
-        ftp_client.event_dispatcher.add_listener(
-            ftp_client.ClientEvent.new_session,
-            self._ftp_session_callback
-        )
+        class ProgressFTPClient(self.app_session.factory.class_map['FTPClient']):
+            def __init__(client_self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                client_self.event_dispatcher.add_listener(client_self.ClientEvent.new_session, self._ftp_session_callback)
+        self.app_session.factory.class_map['FTPClient'] = ProgressFTPClient
 
     def _http_session_callback(self, http_session: HTTPSession):
         http_session.event_dispatcher.add_listener(
