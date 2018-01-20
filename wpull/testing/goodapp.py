@@ -27,7 +27,7 @@ class IndexHandler(tornado.web.RequestHandler):
         self.write(page[10:])
 
 
-class BlogHandler(tornado.web.RequestHandler):
+class BlogHalf500Handler(tornado.web.RequestHandler):
     def initialize(self):
         if not hasattr(self.application, 'counter'):
             self.application.counter = 0
@@ -38,6 +38,15 @@ class BlogHandler(tornado.web.RequestHandler):
         if 1 <= page_num <= 5:
             if self.application.counter % 2 == 0:
                 raise HTTPError(500)
+            self.render('blog.html', page_num=page_num)
+        else:
+            raise HTTPError(404)
+
+
+class BlogHandler(tornado.web.RequestHandler):
+    def get(self):
+        page_num = int(self.get_argument('page', 1))
+        if 1 <= page_num <= 5:
             self.render('blog.html', page_num=page_num)
         else:
             raise HTTPError(404)
@@ -199,6 +208,7 @@ class GoodApp(tornado.web.Application):
     def __init__(self):
         tornado.web.Application.__init__(self, [
             (r'/', IndexHandler),
+            (r'/blog_half500/?', BlogHalf500Handler),
             (r'/blog/?', BlogHandler),
             (r'/infinite/', InfiniteHandler),
             (r'/static/(.*)', tornado.web.StaticFileHandler),

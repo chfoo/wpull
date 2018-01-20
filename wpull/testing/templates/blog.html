@@ -58,6 +58,6 @@
 	{% set rand = random.Random(page_num) %}
 	{% set dummy = rand.shuffle(l) %}
 	{{ ' '.join(l) }}
-	<a href="/blog/?page={{ page_num + 1}}">NEXT PAGE</a>
+	<a href="?page={{ page_num + 1}}">NEXT PAGE</a>
 </body>
 </htm>
