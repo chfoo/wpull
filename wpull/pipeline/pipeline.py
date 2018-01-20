@@ -10,7 +10,9 @@ from wpull.backport.logging import BraceMessage as __
 
 _logger = logging.getLogger(__name__)
 
-POISON_PILL = object()
+class _PoisonPill:
+    pass
+POISON_PILL = _PoisonPill()
 ITEM_PRIORITY = 1
 POISON_PRIORITY = 0
 
