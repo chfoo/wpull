@@ -49,9 +49,7 @@ class ItemQueue(Generic[WorkItemT]):
     @asyncio.coroutine
     def put_item_coro(self, item_coro: WorkItemT, producer_future: asyncio.Future):
         while self._queue.qsize() > 0:
-            yield from self._worker_ready_condition.acquire()
-            yield from self._worker_ready_condition.wait()
-            self._worker_ready_condition.release()
+            yield from self.wait_for_worker()
 
         self._unfinished_items += 1
         self._queue.put_nowait((ITEM_PRIORITY, self._entry_count, item_coro, producer_future))
