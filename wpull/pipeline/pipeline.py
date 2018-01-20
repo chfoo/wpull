@@ -222,10 +222,6 @@ class Producer(object):
                     break
                 else:
                     yield from self._item_queue.wait_for_worker()
-                    if self._item_queue.unfinished_items == 0:
-                        # If this was the last worker, stop immediately instead of going through another item.
-                        self.stop()
-                        break
 
     def stop(self):
         '''Stop the producer.'''
