@@ -15,6 +15,11 @@ ITEM_PRIORITY = 1
 POISON_PRIORITY = 0
 
 
+@asyncio.coroutine
+def poison_pill_coro():
+    return POISON_PILL
+
+
 WorkItemT = TypeVar('WorkItemT')
 
 
@@ -40,29 +45,29 @@ class ItemQueue(Generic[WorkItemT]):
         self._entry_count = 0
 
     @asyncio.coroutine
-    def put_item(self, item: WorkItemT):
+    def put_item_coro(self, item_coro: WorkItemT, producer_future: asyncio.Future):
         while self._queue.qsize() > 0:
             yield from self._worker_ready_condition.acquire()
             yield from self._worker_ready_condition.wait()
             self._worker_ready_condition.release()
 
         self._unfinished_items += 1
-        self._queue.put_nowait((ITEM_PRIORITY, self._entry_count, item))
+        self._queue.put_nowait((ITEM_PRIORITY, self._entry_count, item_coro, producer_future))
         self._entry_count += 1
 
     def put_poison_nowait(self):
-        self._queue.put_nowait((POISON_PRIORITY, self._entry_count, POISON_PILL))
+        self._queue.put_nowait((POISON_PRIORITY, self._entry_count, poison_pill_coro, None))
         self._entry_count += 1
 
     @asyncio.coroutine
     def get(self) -> WorkItemT:
-        priority, entry_count, item = yield from self._queue.get()
+        priority, entry_count, item_coro, producer_future = yield from self._queue.get()
 
         yield from self._worker_ready_condition.acquire()
         self._worker_ready_condition.notify_all()
         self._worker_ready_condition.release()
 
-        return item
+        return item_coro
 
     @asyncio.coroutine
     def item_done(self):
@@ -83,6 +88,15 @@ class ItemQueue(Generic[WorkItemT]):
         yield from self._worker_ready_condition.wait()
         self._worker_ready_condition.release()
 
+    @asyncio.coroutine
+    def drain(self):
+        while self._queue.qsize() > 0:
+            priority, entry_count, item_coro, producer_future = yield from self._queue.get()
+            yield from self.item_done()
+            if producer_future is not None:
+                producer_future.cancel()
+            _logger.debug('Drained {!r} ({!r}), {} remaining, {} unfinished'.format(item_coro, producer_future, self._queue.qsize(), self._unfinished_items))
+
 
 class Worker(object):
     def __init__(self, item_queue: ItemQueue, tasks: Sequence[ItemTask]):
@@ -92,14 +106,22 @@ class Worker(object):
 
     @asyncio.coroutine
     def process_one(self, _worker_id=None):
-        item = yield from self._item_queue.get()
+        item_coro = yield from self._item_queue.get()
+        _logger.debug('worker {} processing {!r}'.format(_worker_id, item_coro))
+        item = yield from item_coro()
+        _logger.debug('worker {} got: {!r}'.format(_worker_id, item))
 
         if item == POISON_PILL:
+            return item
+
+        if item is None:
+            yield from self._item_queue.item_done()
             return item
 
         _logger.debug(__('Worker id {} Processing item {}', _worker_id, item))
 
         for task in self._tasks:
+            _logger.debug('Worker {} processing item {}, task {}'.format(_worker_id, item, task))
             yield from task.process(item)
 
         _logger.debug(__('Worker id {} Processed item {}', _worker_id, item))
@@ -129,14 +151,24 @@ class Producer(object):
         self._item_queue = item_queue
         self._running = False
 
+    def _make_get_item_from_source(self, future):
+        @asyncio.coroutine
+        def _get_item_from_source():
+            _logger.debug('Get item from source')
+            item = yield from self._item_source.get_item()
+            future.set_result(item)
+            return item
+        return _get_item_from_source
+
     @asyncio.coroutine
     def process_one(self):
-        _logger.debug('Get item from source')
-        item = yield from self._item_source.get_item()
-
-        if item:
-            yield from self._item_queue.put_item(item)
-            return item
+        future = asyncio.Future()
+        yield from self._item_queue.put_item_coro(self._make_get_item_from_source(future), future)
+        try:
+            item = yield from future
+        except asyncio.CancelledError:
+            item = None
+        return item
 
     @asyncio.coroutine
     def process(self):
@@ -145,11 +177,16 @@ class Producer(object):
         while self._running:
             item = yield from self.process_one()
 
-            if not item and self._item_queue.unfinished_items == 0:
-                self.stop()
-                break
-            elif not item:
-                yield from self._item_queue.wait_for_worker()
+            if item is None:
+                if self._item_queue.unfinished_items == 0:
+                    self.stop()
+                    break
+                else:
+                    yield from self._item_queue.wait_for_worker()
+                    if self._item_queue.unfinished_items == 0:
+                        # If this was the last worker, stop immediately instead of going through another item.
+                        self.stop()
+                        break
 
     def stop(self):
         if self._running:
@@ -185,6 +222,8 @@ class Pipeline(object):
 
     @asyncio.coroutine
     def process(self):
+        _logger.debug('pipeline processing: {!r}'.format(self._tasks))
+
         if self._state == PipelineState.stopped:
             self._state = PipelineState.running
             self._producer_task = asyncio.get_event_loop().create_task(self._run_producer_wrapper())
@@ -226,11 +265,12 @@ class Pipeline(object):
         if self._worker_tasks:
             _logger.debug('Waiting for workers to stop.')
             yield from asyncio.wait(self._worker_tasks)
-
-        _logger.debug('Waiting for producer to stop.')
-
         self._worker_tasks.clear()
 
+        _logger.debug('Draining item queue')
+        yield from self._item_queue.drain()
+
+        _logger.debug('Waiting for producer to stop.')
         yield from self._producer_task
 
         self._state = PipelineState.stopped
