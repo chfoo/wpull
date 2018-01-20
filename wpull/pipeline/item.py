@@ -139,3 +139,20 @@ class URLRecord(URLProperties, URLData, URLResult):
         '''Return URL Info for this URL'''
         return URLInfo.parse(self.url)
 
+    @classmethod
+    def root_record(cls, url):
+        '''Generate a URLRecord instance for a root entry'''
+        record = cls()
+        record.url = url
+        record.parent_url = url
+        record.root_url = url
+        record.status = Status.todo
+        record.try_count = 0
+        record.level = 0
+        record.inline_level = None
+        record.link_type = None
+        record.priority = None
+        record.post_data = None
+        record.status_code = None
+        record.filename = None
+        return record

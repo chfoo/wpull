@@ -9,6 +9,7 @@ from wpull.backport.logging import BraceMessage as __
 from wpull.database.base import AddURLInfo
 from wpull.database.sqltable import GenericSQLURLTable
 from wpull.pipeline.app import AppSession
+from wpull.pipeline.item import URLProperties, URLRecord
 from wpull.pipeline.pipeline import ItemTask
 import wpull.util
 import wpull.url
@@ -43,7 +44,7 @@ class InputURLTask(ItemTask[AppSession]):
         url_count = 0
 
         for batch in wpull.util.grouper(self._read_input_urls(session), 1000):
-            urls = url_table.add_many(AddURLInfo(url_info.url, None, None) for url_info in batch if url_info)
+            urls = url_table.add_many(add_url_info for add_url_info in batch if add_url_info)
             # TODO: attach hook for notifying progress
             url_count += len(urls)
 
@@ -59,6 +60,7 @@ class InputURLTask(ItemTask[AppSession]):
         url_string_iter = session.args.urls or ()
         # FIXME: url rewriter isn't created yet
         url_rewriter = session.factory.get('URLRewriter')
+        prioritiser = session.factory['URLPrioritiser']
 
         if session.args.input_file:
             if session.args.force_html:
@@ -87,7 +89,13 @@ class InputURLTask(ItemTask[AppSession]):
                     url_info = url_rewriter.rewrite(url_info)
                     _logger.debug(__('Rewritten URL {0}', url_info))
 
-                yield url_info
+                url_record = URLRecord.root_record(url_info.url)
+                url_properties = URLProperties()
+                url_properties.parent_url = url_info.url
+                url_properties.root_url = url_info.url
+                url_properties.priority = prioritiser.get_priority(url_info, url_record)
+
+                yield AddURLInfo(url_info.url, url_properties, None)
 
             except ValueError as e:
                 _logger.info(__('Invalid URL {0}: {1}', url_string, e))

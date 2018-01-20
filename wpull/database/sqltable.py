@@ -46,7 +46,7 @@ class BaseSQLURLTable(BaseURLTable):
 
     def get_one(self, url):
         with self._session() as session:
-            result = session.query(QueuedURL).filter_by(url=url).first()
+            result = session.query(QueuedURL).filter_by(url=url).order_by(QueuedURL.priority.desc(), QueuedURL.id).first()
 
             if not result:
                 raise NotFound()
@@ -138,13 +138,13 @@ class BaseSQLURLTable(BaseURLTable):
         with self._session() as session:
             if level is None:
                 url_record = session.query(QueuedURL).filter_by(
-                    status=filter_status.value).first()
+                    status=filter_status.value).order_by(QueuedURL.priority.desc(), QueuedURL.id).first()
             else:
                 url_record = session.query(QueuedURL)\
                     .filter(
                         QueuedURL.status == filter_status.value,
                         QueuedURL.level < level,
-                ).first()
+                ).order_by(QueuedURL.priority.desc(), QueuedURL.id).first()
 
             if not url_record:
                 raise NotFound()

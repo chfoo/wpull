@@ -4,6 +4,7 @@ import argparse
 import gettext
 import logging
 import os
+import re
 import ssl
 import sys
 
@@ -84,6 +85,28 @@ class AppHelpFormatter(argparse.HelpFormatter):
                 if action.option_strings or action.nargs in defaulting_nargs:
                     help += _(' (default: %(default)s)')
         return help
+
+
+class AppendPriorityFilterAction(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string):
+        if option_string == '--priority-regex':
+            filterType = 'regex'
+            try:
+                re.compile(values[0])
+            except re.error:
+                raise ValueError('invalid regular expression {s!r}'.format(values[0]))
+            filterArg = values[0]
+            filterPriority = int(values[1])
+        elif option_string == '--priority-domain':
+            filterType = 'domain'
+            filterArg = values[0] #TODO: Check if it's a valid domain name?
+            filterPriority = int(values[1])
+        else:
+            raise ValueError('unknown option string {s!r}'.format(option_string))
+
+        filterList = getattr(namespace, self.dest, [])
+        filterList.append((filterType, filterArg, filterPriority))
+        setattr(namespace, self.dest, filterList)
 
 
 class AppArgumentParser(argparse.ArgumentParser):
@@ -205,6 +228,7 @@ class AppArgumentParser(argparse.ArgumentParser):
         self._add_recursive_args()
         self._add_accept_args()
         self._add_proxy_server_args()
+        self._add_priority_args()
         self._add_phantomjs_args()
         self._add_youtube_dl_args()
 
@@ -1302,6 +1326,26 @@ class AppArgumentParser(argparse.ArgumentParser):
             metavar='PORT',
             help=_('bind the proxy server port to PORT')
         )
+
+    def _add_priority_args(self):
+        group = self.add_argument_group(_('priorisation'))
+        group.add_argument(
+            '--priority-regex',
+            nargs = 2,
+            metavar = ('REGEX', 'PRIORITY'),
+            dest = 'priority_filters',
+            action = AppendPriorityFilterAction,
+            help = _('assign PRIORITY to URLs matching REGEX'),
+        )
+        group.add_argument(
+            '--priority-domain',
+            nargs = 2,
+            metavar = ('DOMAIN', 'PRIORITY'),
+            dest = 'priority_filters',
+            action = AppendPriorityFilterAction,
+            help = _('assign PRIORITY to URLs under DOMAIN'),
+        )
+        self.set_defaults(priority_filters = [])
 
     def _add_phantomjs_args(self):
         group = self.add_argument_group(_('PhantomJS'))

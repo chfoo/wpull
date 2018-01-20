@@ -98,3 +98,27 @@ class URLFiltersPostURLImportSetupTask(ItemTask[AppSession]):
 
         demux_url_filter = session.factory['DemuxURLFilter']
         demux_url_filter.url_filters.append(span_hosts_filter)
+
+
+class URLPrioritiserSetupTask(ItemTask[AppSession]):
+    @asyncio.coroutine
+    def process(self, session: AppSession):
+        session.factory.new('URLPrioritiser', self._build_priorities(session))
+
+    @classmethod
+    def _build_priorities(cls, session: AppSession):
+        '''Create the URL filter instances.
+
+        Returns:
+            A list of URL filter instances
+        '''
+        args = session.args
+
+        filters = []
+        for filterType, filterArg, filterPriority in args.priority_filters:
+            if filterType == 'regex':
+                filters.append((RegexFilter(accepted = filterArg), filterPriority))
+            elif filterType == 'domain':
+                filters.append((BackwardDomainFilter(accepted = [filterArg]), filterPriority))
+
+        return filters
