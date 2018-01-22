@@ -125,5 +125,6 @@ class PluginFunctions(enum.Enum):
     handle_pre_response = 'handle_pre_response'
     handle_error = 'handle_error'
     get_urls = 'get_urls'
+    get_priority = 'get_priority'
     finishing_statistics = 'finishing_statistics'
     exit_status = 'exit_status'
