@@ -140,7 +140,7 @@ class TestPrioritiserHTTPGoodApp(HTTPGoodAppTestCase):
         filename = os.path.join(os.path.dirname(__file__), 'sample_user_scripts', 'priorisation.plugin.py')
         arg_parser = AppArgumentParser()
         args = arg_parser.parse_args([
-            self.get_url('/blog/?with_prio=1'), # Flag for the plugin to set priorities
+            self.get_url('/blog/?get_urls_with_prio=1'), # Flag for the plugin to set priorities
             '--no-robots',
             '--recursive', '--level', 'inf',
             '--page-requisites',
@@ -163,7 +163,47 @@ class TestPrioritiserHTTPGoodApp(HTTPGoodAppTestCase):
         self.assertEqual(
             [r.resource_path for r in request_log],
             [
-                '/blog/?with_prio=1',
+                '/blog/?get_urls_with_prio=1',
+                '/blog/?page=2',
+                '/blog/?page=3',
+                '/blog/?page=3&tab=1', '/blog/?page=3&tab=2', '/blog/?page=3&tab=3',
+                '/blog/?page=4', '/blog/?page=5',
+                '/blog/?tab=1', '/blog/?tab=2', '/blog/?tab=3',
+                '/stylesheet1.css',
+                '/blog/?page=6',
+            ]
+        )
+
+    @wpull.testing.async.async_test()
+    def test_app_priority_plugin_get_priority(self):
+        # Same as test_app_priority_plugin_get_urls_with_priorities, but with the priorities for the URLs added by the plugin in get_priority rather than in get_urls
+        filename = os.path.join(os.path.dirname(__file__), 'sample_user_scripts', 'priorisation.plugin.py')
+        arg_parser = AppArgumentParser()
+        args = arg_parser.parse_args([
+            self.get_url('/blog/?enable_get_priority=1'), # Flag for the plugin to activate get_priority hook
+            '--no-robots',
+            '--recursive', '--level', 'inf',
+            '--page-requisites',
+            '--priority-regex', r'/blog/\?page=6', ' -1',
+            '--priority-regex', r'/blog/\?page=', '2',
+            '--plugin-script', filename,
+        ])
+        builder = Builder(args, unit_test=True)
+
+        request_log = []
+        setup_mock_web_client(builder, request_log)
+
+        app = builder.build()
+        exit_code = yield from app.run()
+
+        print(request_log)
+        self.assertEqual(0, exit_code)
+        self.assertEqual(builder.factory['Statistics'].files, 11)
+
+        self.assertEqual(
+            [r.resource_path for r in request_log],
+            [
+                '/blog/?enable_get_priority=1',
                 '/blog/?page=2',
                 '/blog/?page=3',
                 '/blog/?page=3&tab=1', '/blog/?page=3&tab=2', '/blog/?page=3&tab=3',
