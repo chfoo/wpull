@@ -13,6 +13,9 @@
 :py:attr:`PluginFunctions.finishing_statistics <wpull.application.plugin.PluginFunctions.finishing_statistics>`
    event Interface: :py:meth:`StatsStopTask.plugin_finishing_statistics <wpull.application.tasks.stats.StatsStopTask.plugin_finishing_statistics>`
 
+:py:attr:`PluginFunctions.get_priority <wpull.application.plugin.PluginFunctions.get_priority>`
+   hook Interface: :py:meth:`URLPrioritiser.plugin_get_priority <wpull.urlprioritiser.URLPrioritiser.plugin_get_priority>`
+
 :py:attr:`PluginFunctions.get_urls <wpull.application.plugin.PluginFunctions.get_urls>`
    event Interface: :py:meth:`ProcessingRule.plugin_get_urls <wpull.processor.rule.ProcessingRule.plugin_get_urls>`
 

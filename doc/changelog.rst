@@ -7,8 +7,40 @@ Summary of notable changes.
 .. Take advice from http://keepachangelog.com/.
 
 
-Unreleased
-==========
+Unreleased (fork by JustAnotherArchivist)
+=========================================
+
+* Fixed: Plugins are now loaded early again, restoring behaviour in version 1.x and allowing plugins to override wpull components again.
+* Fixed: `--concurrent` option had no effect since version 2.0.
+* Added: URL priorisation through `--priority-*` options and a `get_priority` hook.
+* Changed: `wpull.pipeline.pipeline.ItemSource` now deals in item generation coroutines rather than items directly.
+
+
+Backwards incompatibility
++++++++++++++++++++++++++
+
+Plugins are now loaded very early in the initialisation again (as in version 1.x). This means that the various components of wpull
+are not yet initialised at the time `WpullPlugin.activate()` is executed. Plugins written for versions 2.0 through 2.0.3 which use
+instances directly will need to be changed to instead replace the relevant class in WpullPlugin.app_session.factory.class_map`.
+
+Any direct usage of the `ItemSource`, `Worker`, or `Producer` classes in `wpull.pipeline.pipeline` has to be adapted to handle item
+generation coroutines instead of items. The `Pipeline` and `PipelineSeries` classes in the same module are not affected.
+
+
+2.0.3 (2017-05-15, fork by falconkirtaran)
+==========================================
+
+* Removed: HTTP CONNECT support
+* Fixed: `ValueError` crash from URL parsing
+
+
+2.0.2 (2017-01-12, fork by falconkirtaran)
+==========================================
+
+* Fixed: Deadlock when wpull is finished.
+* Fixed: `AttributeError` crash on some SSL connections.
+* Fixed: `--warc-max-size` option had no effect since version 2.0.
+* Fixed: `AttributeError` crash from asyncio reading from a closed connection.
 
 
 2.0.1 (2016-06-21)
