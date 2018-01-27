@@ -69,6 +69,8 @@ Missing in Wget
 * ``--proxy-server``
 * ``--proxy-server-address``
 * ``--proxy-server-port``
+* ``--priority-regex``: Control in which order the URLs are retrieved.
+* ``--priority-domain``
 * ``--phantomjs``
 * ``--phantomjs-exe``
 * ``--phantomjs-max-time``
