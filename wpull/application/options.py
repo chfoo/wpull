@@ -1115,6 +1115,12 @@ class AppArgumentParser(argparse.ArgumentParser):
             default=os.curdir,
             help=_('use temporary DIRECTORY for preparing WARC files'),
         )
+        group.add_argument(
+            '--warc-split-meta',
+            action = 'store_true',
+            default = False,
+            help = _('split the log WARC along with the data WARC'),
+        )
 
     def _add_recursive_args(self):
         group = self.add_argument_group(_('recursion'))

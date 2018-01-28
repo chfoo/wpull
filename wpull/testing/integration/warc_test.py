@@ -111,3 +111,75 @@ class TestWARCHTTPGoodApp(HTTPGoodAppTestCase):
 
         self.assertEqual(0, exit_code)
         self.assertGreaterEqual(builder.factory['Statistics'].files, 1)
+
+    @wpull.testing.async.async_test()
+    def test_app_args_warc_size_split_meta_without_split(self):
+        arg_parser = AppArgumentParser()
+        args = arg_parser.parse_args([
+            self.get_url('/'),
+            '--warc-file', 'test',
+            '-4',
+            '--no-robots',
+            '--warc-max-size', '1k',
+            '--warc-split-meta',
+            '--warc-cdx'
+        ])
+        builder = Builder(args, unit_test=True)
+
+        app = builder.build()
+        exit_code = yield from app.run()
+
+        self.assertTrue(os.path.exists('test-00000.warc.gz'))
+        self.assertTrue(os.path.exists('test-00000-meta.warc.gz'))
+        self.assertTrue(os.path.exists('test.cdx'))
+
+        self.assertEqual(0, exit_code)
+        self.assertEqual(builder.factory['Statistics'].files, 1)
+
+    @wpull.testing.async.async_test()
+    def test_app_args_warc_size_split_meta_with_split(self):
+        arg_parser = AppArgumentParser()
+        args = arg_parser.parse_args([
+            self.get_url('/'),
+            '--warc-file', 'test',
+            '-4',
+            '--no-robots',
+            '--page-requisites',
+            '--warc-max-size', '100',
+            '--warc-split-meta',
+            '--warc-cdx'
+        ])
+        builder = Builder(args, unit_test=True)
+
+        app = builder.build()
+        exit_code = yield from app.run()
+
+        base_url = 'http://localhost:{}'.format(self.get_http_port()).encode('ascii')
+
+        self.assertTrue(os.path.exists('test-00000.warc.gz'))
+        self.assertTrue(os.path.exists('test-00000-meta.warc.gz'))
+        self.assertTrue(os.path.exists('test-00001.warc.gz'))
+        self.assertTrue(os.path.exists('test-00001-meta.warc.gz'))
+        self.assertTrue(os.path.exists('test-00002.warc.gz'))
+        self.assertTrue(os.path.exists('test-00002-meta.warc.gz'))
+        self.assertTrue(os.path.exists('test.cdx'))
+
+        with gzip.GzipFile('test-00000-meta.warc.gz') as in_file:
+            data = in_file.read()
+        self.assertIn(base_url, data)
+        self.assertNotIn(base_url + b'/static/style.css', data)
+        self.assertNotIn(b'FINISHED', data)
+
+        with gzip.GzipFile('test-00001-meta.warc.gz') as in_file:
+            data = in_file.read()
+        self.assertIn(base_url + b'/static/style.css', data)
+        self.assertNotIn(b'FINISHED', data)
+
+        with gzip.GzipFile('test-00002-meta.warc.gz') as in_file:
+            data = in_file.read()
+        self.assertNotIn(b'Fetching', data)
+        self.assertNotIn(b'Fetched', data)
+        self.assertIn(b'FINISHED', data)
+
+        self.assertEqual(0, exit_code)
+        self.assertEqual(builder.factory['Statistics'].files, 2)
