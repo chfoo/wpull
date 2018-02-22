@@ -368,7 +368,7 @@ class TestURL(unittest.TestCase):
             URLInfo.parse('http://:@example.com?@/').url
         )
         self.assertEqual(
-            'http://example.com/http:/example.com',
+            'http://example.com/http://example.com',
             URLInfo.parse('http://:@example.com/http://example.com').url
         )
 
