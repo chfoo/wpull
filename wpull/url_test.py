@@ -512,6 +512,24 @@ class TestURL(unittest.TestCase):
         self.assertEqual(443, url_info_dict['port'])
         self.assertEqual('utf-8', url_info_dict['encoding'])
 
+    def test_url_info_backslashes_in_path(self):
+        self.assertEqual(
+            'http://example.com/a/b/',
+            URLInfo.parse('http://example.com/a\\b/').url
+        )
+        self.assertEqual(
+            'http://example.com/a/b/',
+            URLInfo.parse('http://example.com/a\\b\\').url
+        )
+        self.assertEqual(
+            'http://example.com/a/b/',
+            URLInfo.parse('http://example.com\\a/b/').url
+        )
+        self.assertEqual(
+            'http://example.com/a///b/',
+            URLInfo.parse('http://example.com/a\\/\\b/').url
+        )
+
     def test_schemes_simialar(self):
         self.assertTrue(schemes_similar('http', 'http'))
         self.assertTrue(schemes_similar('https', 'http'))
