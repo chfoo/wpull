@@ -479,7 +479,7 @@ def normalize_path(path, encoding='utf-8'):
     '''
     if not path.startswith('/'):
         path = '/' + path
-    path = percent_encode(flatten_path(path, flatten_slashes=True), encoding=encoding)
+    path = percent_encode(flatten_path(path), encoding=encoding)
     return uppercase_percent_encoding(path)
 
 
