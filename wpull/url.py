@@ -254,9 +254,10 @@ class URLInfo(object):
             hostname, sep, port = host.rpartition(':')
 
         if sep:
-            port = int(port)
-            if port < 0 or port > 65535:
-                raise ValueError('Port number invalid')
+            if port != '':
+                port = int(port)
+                if port < 0 or port > 65535:
+                    raise ValueError('Port number invalid')
         else:
             hostname = port
             port = None
