@@ -72,7 +72,7 @@ def urljoin_safe(base_url, url, allow_fragments=True):
         str, None'''
     try:
         return wpull.url.urljoin(
-            base_url, url, allow_fragments=allow_fragments
+            base_url, url.translate({ord(c): None for c in '\r\n\t'}), allow_fragments=allow_fragments
         )
     except ValueError as error:
         _logger.warning(__(

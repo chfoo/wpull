@@ -14,6 +14,7 @@ Unreleased (fork by JustAnotherArchivist)
 * Fixed: `--concurrent` option had no effect since version 2.0.
 * Fixed: wpull no longer flattens consecutive slashes in the path component of URLs, in line with RFC 3986, related standards, and behaviour of other software (wget and browsers).
 * Fixed: Backslashes in URL paths are now treated like forward slashes in accordance with the URL Standard and behaviour of browsers.
+* Fixed: ASCII tab and newline characters are now stripped from URLs, as required by the URL Standard.
 * Added: URL priorisation through `--priority-*` options and a `get_priority` hook.
 * Changed: `wpull.pipeline.pipeline.ItemSource` now deals in item generation coroutines rather than items directly.
 
