@@ -427,7 +427,7 @@ class TestURL(unittest.TestCase):
             URLInfo.parse('http://example.com.:81/').url
         )
 
-    def test_url_info_usrename_password(self):
+    def test_url_info_username_password(self):
         self.assertEqual(
             'http://UserName@example.com/',
             URLInfo.parse('http://UserName@example.com/').url
