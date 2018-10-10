@@ -17,6 +17,7 @@ Unreleased
 * Fixed: ASCII tab and newline characters are now stripped from URLs, as required by the URL Standard.
 * Fixed: Empty ports in URLs are now handled correctly, i.e. as if no colon appeared in the host.
 * Added: URL priorisation through `--priority-*` options and a `get_priority` hook.
+* Added: Meta WARC splitting whenever data WARCs are split using the `--warc-split-meta` option.
 * Changed: `wpull.pipeline.pipeline.ItemSource` now deals in item generation coroutines rather than items directly.
 
 
