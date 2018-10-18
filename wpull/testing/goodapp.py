@@ -7,11 +7,11 @@ import logging
 import os.path
 import time
 
-from tornado.testing import AsyncHTTPTestCase, AsyncHTTPSTestCase
 from tornado.web import HTTPError
 import tornado.web
 
 from wpull.testing.async import AsyncTestCase
+from wpull.testing.util import AsyncHTTPTestCase, AsyncHTTPSTestCase
 
 
 _logger = logging.getLogger(__name__)

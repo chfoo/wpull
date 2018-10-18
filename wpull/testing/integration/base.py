@@ -3,14 +3,13 @@ from http import cookiejar
 
 import asyncio
 import tornado.web
-from tornado.testing import AsyncHTTPSTestCase
 import tornado.ioloop
 
 from wpull.testing.async import AsyncTestCase
 from wpull.testing.badapp import BadAppTestCase
 from wpull.testing.ftp import FTPTestCase
 from wpull.testing.goodapp import GoodAppTestCase
-from wpull.testing.util import TempDirMixin
+from wpull.testing.util import TempDirMixin, AsyncHTTPSTestCase
 
 
 class AppTestCase(AsyncTestCase, TempDirMixin):
