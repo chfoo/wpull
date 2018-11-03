@@ -50,11 +50,8 @@ class TestURLPrioritiser(unittest.TestCase):
         original_url_record = URLRecord() # TODO: pass a proper URLRecord instead
         self.assertEqual(prioritiser.get_priority(original_url_info, original_url_record), 3)
         self.assertEqual(len(hook_calls), 1)
-        # Verify that the hook is called with a copy of the URLInfo and URLRecord instances
         self.assertEqual(hook_calls[0][0], original_url_info)
-        self.assertIsNot(hook_calls[0][0], original_url_info)
         #self.assertEqual(hook_calls[0][1], original_url_record) # TODO: URLRecord does not provide __eq__
-        self.assertIsNot(hook_calls[0][1], original_url_record)
         self.assertIs(hook_calls[0][1].priority, None)
 
     def test_hook_overrides(self):
