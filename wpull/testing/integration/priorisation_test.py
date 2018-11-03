@@ -103,7 +103,6 @@ class TestPrioritiserHTTPGoodApp(HTTPGoodAppTestCase):
         app = builder.build()
         exit_code = yield from app.run()
 
-        print(request_log)
         self.assertEqual(0, exit_code)
         self.assertEqual(builder.factory['Statistics'].files, 5)
 
@@ -143,7 +142,6 @@ class TestPrioritiserHTTPGoodApp(HTTPGoodAppTestCase):
         app = builder.build()
         exit_code = yield from app.run()
 
-        print(request_log)
         self.assertEqual(0, exit_code)
         self.assertEqual(builder.factory['Statistics'].files, 11)
 
@@ -184,7 +182,6 @@ class TestPrioritiserHTTPGoodApp(HTTPGoodAppTestCase):
         app = builder.build()
         exit_code = yield from app.run()
 
-        print(request_log)
         self.assertEqual(0, exit_code)
         self.assertEqual(builder.factory['Statistics'].files, 11)
 
@@ -225,7 +222,6 @@ class TestPrioritiserHTTPGoodApp(HTTPGoodAppTestCase):
         app = builder.build()
         exit_code = yield from app.run()
 
-        print(request_log)
         self.assertEqual(0, exit_code)
         self.assertEqual(builder.factory['Statistics'].files, 11)
 
