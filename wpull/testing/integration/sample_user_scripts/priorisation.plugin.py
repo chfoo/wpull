@@ -31,10 +31,18 @@ class Plugin(WpullPlugin):
 
         if url_info.resource in ('/blog/', '/blog/?get_urls_with_prio=1', '/blog/?enable_get_priority=1'):
             for i in range(1, 4):
-                item_session.add_child_url('http://localhost:' + str(url_info.port) + '/blog/?tab=' + str(i), priority = 1 if self._set_priorities_in_get_urls else None)
+                priority = 1 if self._set_priorities_in_get_urls else None
+                item_session.add_child_url(
+                    'http://localhost:' + str(url_info.port) + '/blog/?tab=' + str(i),
+                    priority=priority
+                )
         elif url_info.resource == '/blog/?page=3':
             for i in range(1, 4):
-                item_session.add_child_url('http://localhost:' + str(url_info.port) + '/blog/?page=3&tab=' + str(i), priority = 3 if self._set_priorities_in_get_urls else None)
+                priority = 3 if self._set_priorities_in_get_urls else None
+                item_session.add_child_url(
+                    'http://localhost:' + str(url_info.port) + '/blog/?page=3&tab=' + str(i),
+                    priority=priority
+                )
 
     @hook(PluginFunctions.get_priority)
     def get_priority(self, url_info: URLInfo, url_record: URLRecord):
