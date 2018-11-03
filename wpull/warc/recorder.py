@@ -218,8 +218,7 @@ class WARCRecorder(object):
             )
             log_record.set_common_fields('resource', 'text/plain')
 
-            log_record.fields['WARC-Target-URI'] = \
-                'urn:X-wpull:log'
+            log_record.fields['WARC-Target-URI'] = 'urn:X-wpull:log'
 
             if self._params.max_size is not None: # Only create a separate meta WARC if max_size is set
                 self._start_new_warc_file(meta=True)

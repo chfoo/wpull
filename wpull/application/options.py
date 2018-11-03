@@ -1119,7 +1119,7 @@ class AppArgumentParser(argparse.ArgumentParser):
             '--warc-split-meta',
             action='store_true',
             default=False,
-            help=_('split the log WARC along with the data WARC'),
+            help=_('when used with --warc-max-size, split the meta WARC as well, not just the data WARC'),
         )
 
     def _add_recursive_args(self):

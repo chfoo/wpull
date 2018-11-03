@@ -130,7 +130,6 @@ class URLInfo(object):
             return None
 
         url = url.strip()
-        # TODO: \r\n\t should be removed from anywhere in the URL.
         if frozenset(url) & C0_CONTROL_SET:
             raise ValueError('URL contains control codes: {}'.format(ascii(url)))
 

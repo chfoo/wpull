@@ -336,8 +336,9 @@ class TestWARC(unittest.TestCase, TempDirMixin):
             params=WARCRecorderParams(
                 compress=False,
                 extra_fields=[('Extra-field', 'my_extra_field')],
-                cdx=True, max_size=1,
-                split_meta = True,
+                cdx=True,
+                max_size=1,
+                split_meta=True,
             )
         )
 
