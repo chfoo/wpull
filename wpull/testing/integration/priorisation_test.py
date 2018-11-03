@@ -41,7 +41,15 @@ class TestPrioritiserHTTPGoodApp(HTTPGoodAppTestCase):
 
         self.assertEqual(0, exit_code)
         self.assertEqual(builder.factory['Statistics'].files, 4)
-        self.assertEqual([r.resource_path for r in request_log], ['/static/DEUUEAUGH.html', '/static/mojibake.html', '/static/simple_javascript.html', '/static/style.css'])
+        self.assertEqual(
+            [r.resource_path for r in request_log],
+            [
+                '/static/DEUUEAUGH.html',
+                '/static/mojibake.html',
+                '/static/simple_javascript.html',
+                '/static/style.css'
+            ]
+        )
 
     @wpull.testing.async.async_test()
     def test_app_args_priority_domain(self):
@@ -66,7 +74,15 @@ class TestPrioritiserHTTPGoodApp(HTTPGoodAppTestCase):
 
         self.assertEqual(0, exit_code)
         self.assertEqual(builder.factory['Statistics'].files, 4)
-        self.assertEqual([r.resource_path for r in request_log], ['/static/DEUUEAUGH.html', '/static/mojibake.html', '/static/simple_javascript.html', '/static/style.css'])
+        self.assertEqual(
+            [r.resource_path for r in request_log],
+            [
+                '/static/DEUUEAUGH.html',
+                '/static/mojibake.html',
+                '/static/simple_javascript.html',
+                '/static/style.css'
+            ]
+        )
 
     @wpull.testing.async.async_test()
     def test_app_priority_recursive(self):
@@ -91,7 +107,18 @@ class TestPrioritiserHTTPGoodApp(HTTPGoodAppTestCase):
         self.assertEqual(0, exit_code)
         self.assertEqual(builder.factory['Statistics'].files, 5)
 
-        self.assertEqual([r.resource_path for r in request_log], ['/blog/', '/blog/?page=2', '/blog/?page=3', '/blog/?page=4', '/blog/?page=5', '/stylesheet1.css', '/blog/?page=6'])
+        self.assertEqual(
+            [r.resource_path for r in request_log],
+            [
+                '/blog/',
+                '/blog/?page=2',
+                '/blog/?page=3',
+                '/blog/?page=4',
+                '/blog/?page=5',
+                '/stylesheet1.css',
+                '/blog/?page=6'
+            ]
+        )
 
     @wpull.testing.async.async_test()
     def test_app_priority_plugin_get_urls(self):
@@ -136,7 +163,8 @@ class TestPrioritiserHTTPGoodApp(HTTPGoodAppTestCase):
 
     @wpull.testing.async.async_test()
     def test_app_priority_plugin_get_urls_with_priorities(self):
-        # Same as test_app_priority_plugin_get_urls, but with the priorities for the URLs added by the plugin set within the plugin rather than with --priority-* options
+        # Same as test_app_priority_plugin_get_urls, but with the priorities for the URLs
+        # added by the plugin set within the plugin rather than with --priority-* options
         filename = os.path.join(os.path.dirname(__file__), 'sample_user_scripts', 'priorisation.plugin.py')
         arg_parser = AppArgumentParser()
         args = arg_parser.parse_args([
@@ -176,7 +204,8 @@ class TestPrioritiserHTTPGoodApp(HTTPGoodAppTestCase):
 
     @wpull.testing.async.async_test()
     def test_app_priority_plugin_get_priority(self):
-        # Same as test_app_priority_plugin_get_urls_with_priorities, but with the priorities for the URLs added by the plugin in get_priority rather than in get_urls
+        # Same as test_app_priority_plugin_get_urls_with_priorities, but with the priorities
+        # for the URLs added by the plugin in get_priority rather than in get_urls
         filename = os.path.join(os.path.dirname(__file__), 'sample_user_scripts', 'priorisation.plugin.py')
         arg_parser = AppArgumentParser()
         args = arg_parser.parse_args([

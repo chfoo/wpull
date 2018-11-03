@@ -26,7 +26,8 @@ class URLPrioritiser(HookableMixin):
         Args:
             url_info (URLInfo): A representation of the URL in question
             url_record (URLRecord): Information about the URL in the context of the crawl.
-                Note that the priority attribute will always be ``None`` because the hook is called *before* the internal rules.
+                Note that the priority attribute will always be ``None``
+                because the hook is called *before* the internal rules.
 
         Returns:
             An integer to set the priority to that value, or None if the normal priorisation rules shall be consulted.
@@ -34,7 +35,9 @@ class URLPrioritiser(HookableMixin):
         return None
 
     def _get_priority_from_hook(self, url_info: URLInfo, url_record: URLRecord) -> Union[int, None]:
-        '''Tries to call the get_priority hook. The hook can either return an int or None. If the hook is not connected, None is retured.'''
+        '''Tries to call the get_priority hook. The hook can either return
+        an int or None. If the hook is not connected, None is returned.
+        '''
         try:
             # Only pass copies of the URLInfo and URLRecord instances to the hook to prevent modification.
             # A deep copy is not actually needed as of writing this code because all attributes of both classes are immutable.

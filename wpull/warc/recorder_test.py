@@ -341,8 +341,10 @@ class TestWARC(unittest.TestCase, TempDirMixin):
             )
         )
 
-        # This produces three data and meta WARCs (00000 to 00002). The reason being that a new WARC is started after the second request.
-        # That last WARC does not contain any data, but the third meta WARC contains the "FINISHED" log message.
+        # This produces three data and meta WARCs (00000 to 00002). The reason
+        # being that a new WARC is started after the second request. That last
+        # WARC does not contain any data, but the third meta WARC contains the
+        # "FINISHED" log message.
 
         _logger.info('Fetching http://example.com/1')
         request = HTTPRequest('http://example.com/1')
@@ -361,7 +363,9 @@ class TestWARC(unittest.TestCase, TempDirMixin):
         session.response_data(response.to_bytes())
         session.response_data(response.body.content())
         session.end_response(response)
-        _logger.info('Fetched http://example.com/1') # Note, the normal "Fetched" log message is also emitted before the session is closed. Otherwise, it'd end up in the next meta WARC.
+        # Note, the normal "Fetched" log message is also emitted before the
+        # session is closed. Otherwise, it'd end up in the next meta WARC.
+        _logger.info('Fetched http://example.com/1')
         session.close()
 
         _logger.info('Fetching http://example.com/2')

@@ -141,7 +141,11 @@ class ItemQueue(Generic[WorkItemT]):
             yield from self.item_done()
             if producer_future is not None:
                 producer_future.cancel()
-            _logger.debug('Drained {!r} ({!r}), {} remaining, {} unfinished'.format(item_coro, producer_future, self._queue.qsize(), self._unfinished_items))
+            _logger.debug(
+                'Drained {!r} ({!r}), {} remaining, {} unfinished'
+                .format(
+                    item_coro, producer_future, self._queue.qsize(), self._unfinished_items)
+                )
 
 
 class Worker(object):

@@ -195,12 +195,15 @@ class WARCRecorder(object):
     def _flush_log(self, closing=False):
         '''Flush the logging
 
-        If there is already a logger and we want to split the meta WARC: write a meta WARC, delete the temporary log, and move the meta WARC if necessary.
+        If there is already a logger and we want to split the meta WARC: write a
+        meta WARC, delete the temporary log, and move the meta WARC if necessary.
         Then, set up the logger anew.
 
-        If closing is True (i.e. this is the last call to _flush_log), only write the meta WARC etc. and don't set up a new logger.
+        If closing is True (i.e. this is the last call to _flush_log), only write
+        the meta WARC etc. and don't set up a new logger.
 
-        Note that the "write a meta WARC" part will have the side effect of setting self._warc_filename.
+        Note that the "write a meta WARC" part will have the side effect of setting
+        self._warc_filename.
         '''
         logger = logging.getLogger()
         if self._log_handler and (self._params.split_meta or closing):
