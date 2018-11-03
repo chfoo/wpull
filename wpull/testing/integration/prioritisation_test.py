@@ -121,7 +121,7 @@ class TestPrioritiserHTTPGoodApp(HTTPGoodAppTestCase):
 
     @wpull.testing.async.async_test()
     def test_app_priority_plugin_get_urls(self):
-        filename = os.path.join(os.path.dirname(__file__), 'sample_user_scripts', 'priorisation.plugin.py')
+        filename = os.path.join(os.path.dirname(__file__), 'sample_user_scripts', 'prioritisation.plugin.py')
         arg_parser = AppArgumentParser()
         args = arg_parser.parse_args([
             self.get_url('/blog/'),
@@ -163,7 +163,7 @@ class TestPrioritiserHTTPGoodApp(HTTPGoodAppTestCase):
     def test_app_priority_plugin_get_urls_with_priorities(self):
         # Same as test_app_priority_plugin_get_urls, but with the priorities for the URLs
         # added by the plugin set within the plugin rather than with --priority-* options
-        filename = os.path.join(os.path.dirname(__file__), 'sample_user_scripts', 'priorisation.plugin.py')
+        filename = os.path.join(os.path.dirname(__file__), 'sample_user_scripts', 'prioritisation.plugin.py')
         arg_parser = AppArgumentParser()
         args = arg_parser.parse_args([
             self.get_url('/blog/?get_urls_with_prio=1'), # Flag for the plugin to set priorities
@@ -203,7 +203,7 @@ class TestPrioritiserHTTPGoodApp(HTTPGoodAppTestCase):
     def test_app_priority_plugin_get_priority(self):
         # Same as test_app_priority_plugin_get_urls_with_priorities, but with the priorities
         # for the URLs added by the plugin in get_priority rather than in get_urls
-        filename = os.path.join(os.path.dirname(__file__), 'sample_user_scripts', 'priorisation.plugin.py')
+        filename = os.path.join(os.path.dirname(__file__), 'sample_user_scripts', 'prioritisation.plugin.py')
         arg_parser = AppArgumentParser()
         args = arg_parser.parse_args([
             self.get_url('/blog/?enable_get_priority=1'), # Flag for the plugin to activate get_priority hook

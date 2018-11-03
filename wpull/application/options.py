@@ -1334,7 +1334,7 @@ class AppArgumentParser(argparse.ArgumentParser):
         )
 
     def _add_priority_args(self):
-        group = self.add_argument_group(_('priorisation'))
+        group = self.add_argument_group(_('prioritisation'))
         group.add_argument(
             '--priority-regex',
             nargs=2,

@@ -30,7 +30,7 @@ class URLPrioritiser(HookableMixin):
                 because the hook is called *before* the internal rules.
 
         Returns:
-            An integer to set the priority to that value, or None if the normal priorisation rules shall be consulted.
+            An integer to set the priority to that value, or None if the normal prioritisation rules shall be consulted.
         '''
         return None
 

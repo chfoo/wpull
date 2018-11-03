@@ -70,8 +70,8 @@ example, limit the recursion depth.
    move the files ``--warc-move``.
 
 
-Priorisation
-============
+Prioritisation
+==============
 
 With the ``--priority-regex`` and ``--priority-domain`` options, you can
 control in which order the URLs in the queue are downloaded. These options
