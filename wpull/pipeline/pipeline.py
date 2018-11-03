@@ -48,7 +48,8 @@ class ItemSource(Generic[WorkItemT], metaclass=abc.ABCMeta):
         '''Generate an item
 
         Returns:
-           An item to be processed through the pipeline using this ItemSource, or None if there are currently no items.
+           An item to be processed through the pipeline using this ItemSource,
+           or None if there are currently no items.
         '''
         pass
 
@@ -56,12 +57,17 @@ class ItemSource(Generic[WorkItemT], metaclass=abc.ABCMeta):
 class ItemQueue(Generic[WorkItemT]):
     '''A queue of items
 
-    This queue deals in coroutines. Add a coroutine returning an item to the queue with put_item_coro(), and retrieve it with get().
+    This queue deals in coroutines. Add a coroutine returning an item to the queue
+    with put_item_coro(), and retrieve it with get().
 
-    put_item_coro() also expects a producer future, which will be cancelled if the queue is drain()ed before the item is retrieved with get() to forward this information to the producer.
-    (The future is never marked as done by the queue; the item coroutine should do that.)
+    put_item_coro() also expects a producer future, which will be cancelled if the
+    queue is drain()ed before the item is retrieved with get() to forward this
+    information to the producer. (The future is never marked as done by the queue;
+    the item coroutine should do that.)
 
-    In addition, the queue allows adding poison pills with put_poison_nowait(), which will take preference over any item currently in the queue. Poison pills are not counted as items.
+    In addition, the queue allows adding poison pills with put_poison_nowait(),
+    which will take preference over any item currently in the queue. Poison
+    pills are not counted as items.
     '''
 
     def __init__(self):
@@ -72,7 +78,10 @@ class ItemQueue(Generic[WorkItemT]):
 
     @asyncio.coroutine
     def put_item_coro(self, item_coro: WorkItemT, producer_future: asyncio.Future):
-        '''Push a new item along with its producer future to the queue. If the queue is currently non-empty, wait until it becomes empty before adding the item.'''
+        '''Push a new item along with its producer future to the queue. If the
+        queue is currently non-empty, wait until it becomes empty before adding
+        the item.
+        '''
         while self._queue.qsize() > 0:
             yield from self.wait_for_worker()
 
@@ -87,7 +96,9 @@ class ItemQueue(Generic[WorkItemT]):
 
     @asyncio.coroutine
     def get(self) -> WorkItemT:
-        '''Retrieve an item coroutine from the queue. This function will wait for an item coroutine if the queue is currently empty.'''
+        '''Retrieve an item coroutine from the queue. This function will wait
+        for an item coroutine if the queue is currently empty.
+        '''
         priority, entry_count, item_coro, producer_future = yield from self._queue.get()
 
         yield from self._worker_ready_condition.acquire()
@@ -98,7 +109,9 @@ class ItemQueue(Generic[WorkItemT]):
 
     @asyncio.coroutine
     def item_done(self):
-        '''Mark an item as done. This shall be called by the caller of get() exactly once per item.'''
+        '''Mark an item as done. This shall be called by the caller of get()
+        exactly once per item.
+        '''
         self._unfinished_items -= 1
         assert self._unfinished_items >= 0
 
@@ -120,7 +133,9 @@ class ItemQueue(Generic[WorkItemT]):
 
     @asyncio.coroutine
     def drain(self):
-        '''Drain the queue: remove all items from the queue, consider them as completed, and cancel the producer futures.'''
+        '''Drain the queue: remove all items from the queue, consider them as
+        completed, and cancel the producer futures.
+        '''
         while self._queue.qsize() > 0:
             priority, entry_count, item_coro, producer_future = yield from self._queue.get()
             yield from self.item_done()
@@ -130,7 +145,9 @@ class ItemQueue(Generic[WorkItemT]):
 
 
 class Worker(object):
-    '''A worker or consumer of the item queue, performing a sequence of tasks on an item retrieved from the queue.'''
+    '''A worker or consumer of the item queue, performing a sequence of tasks
+    on an item retrieved from the queue.
+    '''
 
     def __init__(self, item_queue: ItemQueue, tasks: Sequence[ItemTask]):
         self._item_queue = item_queue
@@ -181,7 +198,9 @@ class Worker(object):
 
 
 class Producer(object):
-    '''A producer of items, which puts (coroutines getting) items from the item_source into the item queue.'''
+    '''A producer of items, which puts (coroutines getting) items from the
+    item_source into the item queue.
+    '''
 
     def __init__(self, item_source: ItemSource, item_queue: ItemQueue):
         self._item_source = item_source
@@ -199,7 +218,11 @@ class Producer(object):
 
     @asyncio.coroutine
     def process_one(self):
-        '''Put an item generation coroutine into the queue, wait until it is resolved (i.e. retrieved from the queue by a worker and yielded from), and return the resulting item or None if the item queue got drained before the item got processed.'''
+        '''Put an item generation coroutine into the queue, wait until it is
+        resolved (i.e. retrieved from the queue by a worker and yielded from),
+        and return the resulting item or None if the item queue got drained
+        before the item got processed.
+        '''
         future = asyncio.Future()
         yield from self._item_queue.put_item_coro(self._make_get_item_from_source(future), future)
         try:
@@ -260,7 +283,9 @@ class Pipeline(object):
 
     @asyncio.coroutine
     def process(self):
-        '''Run the pipeline loop: start the producer if necessary, wait until the workers are done, shut down.'''
+        '''Run the pipeline loop: start the producer if necessary, wait until
+        the workers are done, shut down.
+        '''
         _logger.debug('pipeline processing: {!r}'.format(self._tasks))
 
         if self._state == PipelineState.stopped:
@@ -275,7 +300,10 @@ class Pipeline(object):
 
     @asyncio.coroutine
     def _process_one_worker(self):
-        '''Create the specified number of workers and wait until at least one of them finishes. Alternatively, if the concurrency is set to zero, wait until it is modified.'''
+        '''Create the specified number of workers and wait until at least one of
+        them finishes. Alternatively, if the concurrency is set to zero, wait until
+        it is modified.
+        '''
         assert self._state == PipelineState.running, self._state
 
         while len(self._worker_tasks) < self._concurrency:
@@ -298,7 +326,9 @@ class Pipeline(object):
 
     @asyncio.coroutine
     def _shutdown_processing(self):
-        '''Shut down the pipeline: wait for all workers to finish, drain the item queue, and wait for the producer to stop.'''
+        '''Shut down the pipeline: wait for all workers to finish, drain the
+        item queue, and wait for the producer to stop.
+        '''
         assert self._state == PipelineState.stopping
 
         _logger.debug('Exited workers loop.')
@@ -350,7 +380,10 @@ class Pipeline(object):
 
     @concurrency.setter
     def concurrency(self, new_concurrency: int):
-        '''Set the concurrency of this pipeline. The value has to be a non-negative integer. If zero, the pipeline is paused until the concurrency is modified again.'''
+        '''Set the concurrency of this pipeline. The value has to be a
+        non-negative integer. If zero, the pipeline is paused until the
+        concurrency is modified again.
+        '''
         if new_concurrency < 0:
             raise ValueError('Concurrency cannot be negative')
 
@@ -385,7 +418,10 @@ class Pipeline(object):
 
 
 class PipelineSeries(object):
-    '''A pipeline series is a sequence of pipelines to be processed in order. The concurrency is forwarded to all pipelines which are listed in concurrency_pipelines.'''
+    '''A pipeline series is a sequence of pipelines to be processed in order.
+    The concurrency is forwarded to all pipelines which are listed in
+    concurrency_pipelines.
+    '''
 
     def __init__(self, pipelines: Iterator[Pipeline]):
         self._pipelines = tuple(pipelines)
