@@ -134,17 +134,12 @@ class BaseSQLURLTable(BaseURLTable):
 
         return added_urls
 
-    def check_out(self, filter_status, level=None):
+    def check_out(self):
         with self._session() as session:
-            if level is None:
-                url_record = session.query(QueuedURL).filter_by(
-                    status=filter_status.value).order_by(QueuedURL.priority.desc(), QueuedURL.id).first()
-            else:
-                url_record = session.query(QueuedURL)\
-                    .filter(
-                        QueuedURL.status == filter_status.value,
-                        QueuedURL.level < level,
-                ).order_by(QueuedURL.priority.desc(), QueuedURL.id).first()
+            url_record = session.query(QueuedURL) \
+                .filter(QueuedURL.status.in_((Status.todo.value, Status.error.value))) \
+                .order_by(QueuedURL.priority.desc(), QueuedURL.status.desc(), QueuedURL.id) \
+                .first()
 
             if not url_record:
                 raise NotFound()

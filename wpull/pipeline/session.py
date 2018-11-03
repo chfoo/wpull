@@ -196,12 +196,9 @@ class URLItemSource(ItemSource[ItemSession]):
     @asyncio.coroutine
     def get_item(self) -> Optional[ItemSession]:
         try:
-            url_record = self._app_session.factory['URLTable'].check_out(Status.todo)
+            url_record = self._app_session.factory['URLTable'].check_out()
         except NotFound:
-            try:
-                url_record = self._app_session.factory['URLTable'].check_out(Status.error)
-            except NotFound:
-                return None
+            return None
 
         item_session = ItemSession(self._app_session, url_record)
         return item_session

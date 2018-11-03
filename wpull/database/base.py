@@ -79,13 +79,8 @@ class BaseURLTable(object, metaclass=abc.ABCMeta):
         self.add_many([AddURLInfo(url, url_properties, url_data)])
 
     @abc.abstractmethod
-    def check_out(self, filter_status: Status,
-                  filter_level: Optional[int]=None) -> URLRecord:
+    def check_out(self) -> URLRecord:
         '''Find a URL, mark it in progress, and return it.
-
-        Args:
-            filter_status: Gets first item with given status.
-            filter_level: Gets item with `filter_level` or lower.
 
         Raises:
             NotFound

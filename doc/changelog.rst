@@ -19,6 +19,7 @@ Unreleased
 * Added: URL prioritisation through `--priority-*` options and a `get_priority` hook.
 * Added: Meta WARC splitting whenever data WARCs are split using the `--warc-split-meta` option.
 * Changed: `wpull.pipeline.pipeline.ItemSource` now deals in item generation coroutines rather than items directly.
+* Changed: `wpull.database.base.BaseURLTable` and its subclasses now have to take care of returning the URLs in the expected order; the two arguments to their `check_out` method have been removed.
 
 
 Backwards incompatibility
@@ -30,6 +31,9 @@ instances directly will need to be changed to instead replace the relevant class
 
 Any direct usage of the `ItemSource`, `Worker`, or `Producer` classes in `wpull.pipeline.pipeline` has to be adapted to handle item
 generation coroutines instead of items. The `Pipeline` and `PipelineSeries` classes in the same module are not affected.
+
+The `*URLTable.check_out` method no longer receives status and level filter arguments. It is now the URLTable's duty to return URLs
+in the correct order. For the default implementation, this means first sorted by highest priority, then todos before errors.
 
 
 2.0.3 (2017-05-15)
