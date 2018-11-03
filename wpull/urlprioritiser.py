@@ -39,10 +39,7 @@ class URLPrioritiser(HookableMixin):
         an int or None. If the hook is not connected, None is returned.
         '''
         try:
-            # Only pass copies of the URLInfo and URLRecord instances to the hook to prevent modification.
-            # A deep copy is not actually needed as of writing this code because all attributes of both classes are immutable.
-            # However, to prevent future breakage if something changes in those classes, a deep copy is used anyway.
-            priority = self.hook_dispatcher.call(PluginFunctions.get_priority, copy.deepcopy(url_info), copy.deepcopy(url_record))
+            priority = self.hook_dispatcher.call(PluginFunctions.get_priority, url_info, url_record)
         except HookDisconnected:
             priority = None
         return priority
