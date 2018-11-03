@@ -115,10 +115,10 @@ class URLPrioritiserSetupTask(ItemTask[AppSession]):
         args = session.args
 
         filters = []
-        for filterType, filterArg, filterPriority in args.priority_filters:
-            if filterType == 'regex':
-                filters.append((RegexFilter(accepted = filterArg), filterPriority))
-            elif filterType == 'domain':
-                filters.append((BackwardDomainFilter(accepted = [filterArg]), filterPriority))
+        for filter_type, filter_arg, filter_priority in args.priority_filters:
+            if filter_type == 'regex':
+                filters.append((RegexFilter(accepted = filter_arg), filter_priority))
+            elif filter_type == 'domain':
+                filters.append((BackwardDomainFilter(accepted = [filter_arg]), filter_priority))
 
         return filters

@@ -90,23 +90,23 @@ class AppHelpFormatter(argparse.HelpFormatter):
 class AppendPriorityFilterAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string):
         if option_string == '--priority-regex':
-            filterType = 'regex'
+            filter_type = 'regex'
             try:
                 re.compile(values[0])
             except re.error:
                 raise ValueError('invalid regular expression {s!r}'.format(values[0]))
-            filterArg = values[0]
-            filterPriority = int(values[1])
+            filter_arg = values[0]
+            filter_priority = int(values[1])
         elif option_string == '--priority-domain':
-            filterType = 'domain'
-            filterArg = values[0] #TODO: Check if it's a valid domain name?
-            filterPriority = int(values[1])
+            filter_type = 'domain'
+            filter_arg = values[0] #TODO: Check if it's a valid domain name?
+            filter_priority = int(values[1])
         else:
             raise ValueError('unknown option string {s!r}'.format(option_string))
 
-        filterList = getattr(namespace, self.dest, [])
-        filterList.append((filterType, filterArg, filterPriority))
-        setattr(namespace, self.dest, filterList)
+        filter_list = getattr(namespace, self.dest, [])
+        filter_list.append((filter_type, filter_arg, filter_priority))
+        setattr(namespace, self.dest, filter_list)
 
 
 class AppArgumentParser(argparse.ArgumentParser):
