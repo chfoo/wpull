@@ -1117,9 +1117,9 @@ class AppArgumentParser(argparse.ArgumentParser):
         )
         group.add_argument(
             '--warc-split-meta',
-            action = 'store_true',
-            default = False,
-            help = _('split the log WARC along with the data WARC'),
+            action='store_true',
+            default=False,
+            help=_('split the log WARC along with the data WARC'),
         )
 
     def _add_recursive_args(self):
@@ -1337,19 +1337,19 @@ class AppArgumentParser(argparse.ArgumentParser):
         group = self.add_argument_group(_('priorisation'))
         group.add_argument(
             '--priority-regex',
-            nargs = 2,
-            metavar = ('REGEX', 'PRIORITY'),
-            dest = 'priority_filters',
-            action = AppendPriorityFilterAction,
-            help = _('assign PRIORITY to URLs matching REGEX'),
+            nargs=2,
+            metavar=('REGEX', 'PRIORITY'),
+            dest='priority_filters',
+            action=AppendPriorityFilterAction,
+            help=_('assign PRIORITY to URLs matching REGEX'),
         )
         group.add_argument(
             '--priority-domain',
-            nargs = 2,
-            metavar = ('DOMAIN', 'PRIORITY'),
-            dest = 'priority_filters',
-            action = AppendPriorityFilterAction,
-            help = _('assign PRIORITY to URLs under DOMAIN'),
+            nargs=2,
+            metavar=('DOMAIN', 'PRIORITY'),
+            dest='priority_filters',
+            action=AppendPriorityFilterAction,
+            help=_('assign PRIORITY to URLs under DOMAIN'),
         )
         self.set_defaults(priority_filters = [])
 

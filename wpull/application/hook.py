@@ -30,7 +30,7 @@ class HookAlreadyConnectedError(ValueError):
 
 class HookDispatcher(collections.abc.Mapping):
     '''Dynamic callback hook system.'''
-    def __init__(self, plugins: Optional[Iterable[WpullPlugin]] = [], event_dispatcher_transclusion: Optional['EventDispatcher']=None):
+    def __init__(self, plugins: Optional[Iterable[WpullPlugin]] = [], event_dispatcher_transclusion: Optional['EventDispatcher'] = None):
         super().__init__()
         self._callbacks = {}
         self._plugins = plugins
@@ -154,8 +154,8 @@ class HookableMixin(object):
 
     def __init__(self):
         super().__init__()
-        self.event_dispatcher = EventDispatcher(plugins = self._plugins)
-        self.hook_dispatcher = HookDispatcher(event_dispatcher_transclusion=self.event_dispatcher, plugins = self._plugins)
+        self.event_dispatcher = EventDispatcher(plugins=self._plugins)
+        self.hook_dispatcher = HookDispatcher(event_dispatcher_transclusion=self.event_dispatcher, plugins=self._plugins)
 
     def connect_plugin(self, plugin: WpullPlugin):
         for func, name, category in plugin.get_plugin_functions():

@@ -10,10 +10,10 @@ from wpull.urlfilter import RegexFilter
 
 
 PRIORITIES = [
-    (RegexFilter(accepted = r'//example\.com/'), 3),
-    (RegexFilter(accepted = r'^ftp://'), -1),
-    (RegexFilter(accepted = r'^https?://example\.net/critical/'), 2),
-    (RegexFilter(accepted = r'//example\.net/'), 1),
+    (RegexFilter(accepted=r'//example\.com/'), 3),
+    (RegexFilter(accepted=r'^ftp://'), -1),
+    (RegexFilter(accepted=r'^https?://example\.net/critical/'), 2),
+    (RegexFilter(accepted=r'//example\.net/'), 1),
 ]
 
 

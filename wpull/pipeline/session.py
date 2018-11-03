@@ -101,10 +101,10 @@ class ItemSession(object):
         if url_properties.priority is None:
             prioritiser = self.app_session.factory['URLPrioritiser']
             url_record = self.child_url_record(url,
-                                               inline = url_properties.inline_level is not None,
-                                               link_type = url_properties.link_type,
-                                               post_data = url_data.post_data,
-                                               level = url_properties.level)
+                                               inline=url_properties.inline_level is not None,
+                                               link_type=url_properties.link_type,
+                                               post_data=url_data.post_data,
+                                               level=url_properties.level)
             url_properties.priority = prioritiser.get_priority(url_info, url_record)
 
         url_data = url_data or URLData()
@@ -116,12 +116,12 @@ class ItemSession(object):
             self.app_session.factory['URLTable'].add_many(self._add_url_batch)
             self._add_url_batch.clear()
 
-    def add_child_url(self, url: str, inline: bool=False,
-                      link_type: Optional[LinkType]=None,
-                      post_data: Optional[str]=None,
-                      level: Optional[int]=None,
-                      priority: Optional[int]=None,
-                      replace: bool=False):
+    def add_child_url(self, url: str, inline: bool = False,
+                      link_type: Optional[LinkType] = None,
+                      post_data: Optional[str] = None,
+                      level: Optional[int] = None,
+                      priority: Optional[int] = None,
+                      replace: bool = False):
         '''Add links scraped from the document with automatic values.
 
         Args:

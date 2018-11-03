@@ -90,10 +90,10 @@ class TestHook(AsyncTestCase):
     def test_hook_dispatcher_connects_plugin_hook_on_register(self):
         plugin = MyPlugin()
 
-        hook = HookDispatcher(plugins = [plugin])
+        hook = HookDispatcher(plugins=[plugin])
         hook.register('hook_test')
         self.assertTrue(hook.is_connected('hook_test'))
-        hook.call('hook_test', 'arg1', 'arg2', kwarg1 = 'one', kwarg2 = 'two', kwarg3 = 'three')
+        hook.call('hook_test', 'arg1', 'arg2', kwarg1='one', kwarg2='two', kwarg3='three')
         self.assertEqual(plugin.hook_calls, [(('arg1', 'arg2'), {'kwarg1': 'one', 'kwarg2': 'two', 'kwarg3': 'three'})])
 
         # Verify that this implicit connect doesn't happen without specifying the plugins
@@ -138,9 +138,9 @@ class TestHook(AsyncTestCase):
     def test_event_dispatcher_adds_plugin_event_listener_on_register(self):
         plugin = MyPlugin()
 
-        event = EventDispatcher(plugins = [plugin])
+        event = EventDispatcher(plugins=[plugin])
         event.register('event_test')
-        event.notify('event_test', 'arg1', 'arg2', kwarg1 = 'one', kwarg2 = 'two', kwarg3 = 'three')
+        event.notify('event_test', 'arg1', 'arg2', kwarg1='one', kwarg2='two', kwarg3='three')
         self.assertEqual(plugin.event_notifications, [(('arg1', 'arg2'), {'kwarg1': 'one', 'kwarg2': 'two', 'kwarg3': 'three'})])
 
         event = EventDispatcher()
@@ -190,11 +190,11 @@ class TestHook(AsyncTestCase):
         try:
             tester = MyClass()
 
-            tester.hook_dispatcher.call('hook_test', 'a', key = 'b')
+            tester.hook_dispatcher.call('hook_test', 'a', key='b')
             self.assertEqual(plugin.hook_calls, [(('a',), {'key': 'b'})])
             self.assertEqual(plugin.event_notifications, [])
 
-            tester.event_dispatcher.notify('event_test', 'c', key = 'd')
+            tester.event_dispatcher.notify('event_test', 'c', key='d')
             self.assertEqual(plugin.hook_calls, [(('a',), {'key': 'b'})])
             self.assertEqual(plugin.event_notifications, [(('c',), {'key': 'd'})])
         finally:
@@ -207,11 +207,11 @@ class TestHook(AsyncTestCase):
         try:
             tester = MyClass()
 
-            tester.hook_dispatcher.call('hook_test', 'a', key = 'b')
+            tester.hook_dispatcher.call('hook_test', 'a', key='b')
             self.assertEqual(plugin.hook_calls, [(('a',), {'key': 'b'})])
             self.assertEqual(plugin.event_notifications, [])
 
-            tester.event_dispatcher.notify('event_test', 'c', key = 'd')
+            tester.event_dispatcher.notify('event_test', 'c', key='d')
             self.assertEqual(plugin.hook_calls, [(('a',), {'key': 'b'})])
             self.assertEqual(plugin.event_notifications, [(('c',), {'key': 'd'})])
         finally:

@@ -88,7 +88,7 @@ class QueuedURL(DBBase):
         doc='Expected content type of extracted link.'
     )
     priority = Column(
-        Integer, nullable=False, default=0, index = True,
+        Integer, nullable=False, default=0, index=True,
         doc='Priority of item.'
     )
 

@@ -119,7 +119,7 @@ class WARCRecorder(object):
         '''Create and set as current WARC file.'''
         if self._params.max_size and (not meta or self._params.split_meta) and self._params.appending:
             while True:
-                self._warc_filename = self._generate_warc_filename(meta = meta)
+                self._warc_filename = self._generate_warc_filename(meta=meta)
 
                 if os.path.exists(self._warc_filename):
                     _logger.debug('Skip {0}', self._warc_filename)
@@ -192,7 +192,7 @@ class WARCRecorder(object):
             bytes(info_fields) + b'\r\n')
         self._warcinfo_record.compute_checksum()
 
-    def _flush_log(self, closing = False):
+    def _flush_log(self, closing=False):
         '''Flush the logging
 
         If there is already a logger and we want to split the meta WARC: write a meta WARC, delete the temporary log, and move the meta WARC if necessary.
@@ -429,7 +429,7 @@ class WARCRecorder(object):
             self._move_file_to_dest_dir(self._warc_filename)
 
         if self._params.log:
-            self._flush_log(closing = True)
+            self._flush_log(closing=True)
 
         if self._cdx_filename and self._params.move_to is not None:
             self._move_file_to_dest_dir(self._cdx_filename)
