@@ -14,7 +14,7 @@ from sqlalchemy.sql.expression import insert, update, select, delete, \
 
 from wpull.database.base import BaseURLTable, NotFound
 from wpull.database.sqlmodel import QueuedURL, URLString, DBBase, WARCVisit, \
-    Hostname, QueuedFile
+    Hostname, QueuedFile, indexedby
 from wpull.pipeline.item import Status
 from wpull.url import URLInfo
 
@@ -136,9 +136,10 @@ class BaseSQLURLTable(BaseURLTable):
 
     def check_out(self):
         with self._session() as session:
-            url_record = session.query(QueuedURL) \
-                .filter(QueuedURL.status.in_((Status.todo.value, Status.error.value))) \
-                .order_by(QueuedURL.priority.desc(), QueuedURL.status.desc(), QueuedURL.id) \
+            table = indexedby(QueuedURL, 'ix_queued_urls_priority_status_id')
+            url_record = session.query(table) \
+                .filter(table.status.in_((Status.todo.value, Status.error.value))) \
+                .order_by(table.priority.desc(), table.status.desc(), table.id) \
                 .first()
 
             if not url_record:

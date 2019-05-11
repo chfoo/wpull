@@ -5,7 +5,7 @@ import sqlalchemy.ext.declarative
 from sqlalchemy import insert, select, and_, func
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql.schema import Column, ForeignKey
+from sqlalchemy.sql.schema import Column, ForeignKey, Index
 from sqlalchemy.sql.sqltypes import Integer, Enum, String
 from typing import Iterable
 
@@ -131,6 +131,9 @@ class QueuedURL(DBBase):
         return record
 
 
+Index('ix_queued_urls_priority_status_id', QueuedURL.priority.desc(), QueuedURL.status.desc(), QueuedURL.id)
+
+
 class WARCVisit(DBBase):
     '''Standalone table for ``--cdx-dedup`` feature.'''
     __tablename__ = 'warc_visits'
@@ -190,5 +193,31 @@ class QueuedFile(DBBase):
     )
 
 
+# INDEXED BY clause; based on https://stackoverflow.com/a/37431931
+from sqlalchemy.ext.compiler import compiles
+from sqlalchemy.sql import Alias, FromClause
+from sqlalchemy.orm import aliased
+
+
+class IndexedBy(Alias):
+    __visit_name__ = 'indexedby'
+
+    def __init__(self, selectable, index = None):
+        super().__init__(selectable)
+        self.index = index
+
+
+def indexedby(element, index = None):
+    if isinstance(element, FromClause):
+        return IndexedBy(element, index = index)
+    else:
+        return aliased(element, IndexedBy(element.__table__, index = index))
+
+
+@compiles(IndexedBy)
+def compile_indexedby(element, compiler, **kwargs):
+    return "%s INDEXED BY %s" % (compiler.visit_alias(element, **kwargs), element.index)
+
+
 __all__ = ('DBBase', 'QueuedURL', 'URLString', 'WARCVisit', 'Hostname',
-           'QueuedFile')
+           'QueuedFile', 'indexedby')
