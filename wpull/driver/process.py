@@ -53,8 +53,9 @@ class Process(object):
         )
         self._process = yield from process_future
 
-        self._stderr_reader = asyncio.async(self._read_stderr())
-        self._stdout_reader = asyncio.async(self._read_stdout())
+        _async=getattr(asyncio, 'async')
+        self._stderr_reader = _async(self._read_stderr())
+        self._stdout_reader = _async(self._read_stdout())
 
         if use_atexit:
             atexit.register(self.close)
