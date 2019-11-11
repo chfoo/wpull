@@ -81,6 +81,7 @@ setup_kwargs = dict(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Internet :: File Transfer Protocol (FTP)',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: System :: Archiving',
@@ -93,26 +94,33 @@ setup_kwargs = dict(
             'wpull3=wpull.application.main:main',
         ],
     },
+    extras_require={
+        'resmon': ['psutil>=2.0,<=4.2'],
+        },
+    setup_requires=['nose>=1.0'],
+    # XXX: for some odd reason this specific coverage version is required
+    tests_require=['coverage==4.0.3', 'python-coveralls'],
+    python_requires='>=3.4,<3.7',
 )
 
 
-# Do not add version ranges unless absolutely required!
-# See also requirements.txt
 setup_kwargs['install_requires'] = [
-    'chardet',
-    'dnspython3',
-    'html5lib',
-    'namedlist',
-    'sqlalchemy',
-    'tornado',
-    'yapsy',
+    'chardet>=2.0.1',
+    'dnspython3==1.12',
+    'html5lib>=0.999,<=0.9999999',
+    'lxml>=3.1.0,<=3.5',
+    'namedlist>=1.3',
+    'sqlalchemy>=0.9',
+    'tornado>=3.2.2,<4.5.3',
+    'yapsy>=1.11.223',
 ]
 
 if sys.version_info < (3, 5):
-    setup_kwargs['install_requires'].append('typing')
+    setup_kwargs['install_requires'].append('typing>=3.5,<=3.5.1')
 
 
 if __name__ == '__main__':
+    # this check is for old versions of pip/setuptools
     if sys.version_info[0] < 3:
         raise Exception('Sorry, Python 2 is not supported.')
 

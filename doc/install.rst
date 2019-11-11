@@ -58,10 +58,6 @@ case, use the manual install.
 Manual Install
 ==============
 
-Install the dependencies known to work with Wpull::
-
-    pip3 install -r https://raw2.github.com/chfoo/wpull/master/requirements.txt
-
 Install Wpull from GitHub::
 
     pip3 install git+https://github.com/chfoo/wpull.git#egg=wpull
