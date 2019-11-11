@@ -174,7 +174,29 @@ class TestPipeline(AsyncTestCase):
 
         yield from pipeline.process()
 
-        self.assertIsNone(items[-1].processed_value)
+        self.assertEqual([i.processed_value for i in items], [2, 4, 6, 8, 10, None, None, None, None, None])
+
+    @wpull.testing.async.async_test()
+    def test_stopping_concurrency(self):
+        @asyncio.coroutine
+        def run(concurrency):
+            items = self._new_items(10)
+            task = MyItemTask()
+            pipeline = Pipeline(MySource(items), [task])
+            pipeline.concurrency = concurrency
+
+            def task_callback():
+                if task.item_count == 5:
+                    pipeline.stop()
+
+            task.callback = task_callback
+
+            yield from pipeline.process()
+
+            self.assertEqual([i.processed_value for i in items], [2, 4, 6, 8, 10, None, None, None, None, None])
+
+        for concurrency in [2, 4, 5, 6, 10, 15]:
+            yield from run(concurrency)
 
     @wpull.testing.async.async_test()
     def test_concurrency_step_up(self):

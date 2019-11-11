@@ -70,6 +70,17 @@ example, limit the recursion depth.
    move the files ``--warc-move``.
 
 
+Prioritisation
+==============
+
+With the ``--priority-regex`` and ``--priority-domain`` options, you can
+control in which order the URLs in the queue are downloaded. These options
+can be specified multiple times and are used in the given order. Each URL
+is checked against the list of priority rules, and the first matching rule
+sets the priority for the URL. The default priority (if no rule matches)
+is zero. The higher a URL's priority value is, the sooner it is processed.
+
+
 Proxied Services
 ================
 

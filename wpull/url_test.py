@@ -136,6 +136,14 @@ class TestURL(unittest.TestCase):
             'http://example.com/',
             URLInfo.parse('http://example.com:80').url
         )
+        self.assertEqual(
+            'http://example.com/',
+            URLInfo.parse('http://example.com:').url
+        )
+        self.assertEqual(
+            'http://example.com/',
+            URLInfo.parse('http://example.com:/').url
+        )
 
     def test_url_info_percent_encode(self):
         self.assertEqual(
@@ -253,8 +261,6 @@ class TestURL(unittest.TestCase):
         self.assertRaises(ValueError, URLInfo.parse, 'http:///horse')
         self.assertRaises(ValueError, URLInfo.parse, 'http://?what?')
         self.assertRaises(ValueError, URLInfo.parse, 'http://#egg=wpull')
-        self.assertRaises(ValueError, URLInfo.parse,
-                          'http://:@example.com:?@/')
         self.assertRaises(ValueError, URLInfo.parse, 'http://\x00/')
         self.assertRaises(ValueError, URLInfo.parse, 'http:/a')
         self.assertRaises(ValueError, URLInfo.parse, 'http://@@example.com/@')
@@ -368,8 +374,12 @@ class TestURL(unittest.TestCase):
             URLInfo.parse('http://:@example.com?@/').url
         )
         self.assertEqual(
-            'http://example.com/http:/example.com',
+            'http://example.com/http://example.com',
             URLInfo.parse('http://:@example.com/http://example.com').url
+        )
+        self.assertEqual(
+            'http://example.com/?@/',
+            URLInfo.parse('http://:@example.com:?@/').url
         )
 
     def test_url_info_query(self):
@@ -427,7 +437,7 @@ class TestURL(unittest.TestCase):
             URLInfo.parse('http://example.com.:81/').url
         )
 
-    def test_url_info_usrename_password(self):
+    def test_url_info_username_password(self):
         self.assertEqual(
             'http://UserName@example.com/',
             URLInfo.parse('http://UserName@example.com/').url
@@ -511,6 +521,28 @@ class TestURL(unittest.TestCase):
         self.assertEqual('https', url_info_dict['scheme'])
         self.assertEqual(443, url_info_dict['port'])
         self.assertEqual('utf-8', url_info_dict['encoding'])
+
+    def test_url_info_backslashes_in_path(self):
+        self.assertEqual(
+            'http://example.com/a/b/',
+            URLInfo.parse('http://example.com/a\\b/').url
+        )
+        self.assertEqual(
+            'http://example.com/a/b/',
+            URLInfo.parse('http://example.com/a\\b\\').url
+        )
+        self.assertEqual(
+            'http://example.com/a/b/',
+            URLInfo.parse('http://example.com\\a/b/').url
+        )
+        self.assertEqual(
+            'http://example.com/a///b/',
+            URLInfo.parse('http://example.com/a\\/\\b/').url
+        )
+        self.assertEqual(
+            'http://example.com/',
+            URLInfo.parse('http://example.com:\\').url
+        )
 
     def test_schemes_simialar(self):
         self.assertTrue(schemes_similar('http', 'http'))

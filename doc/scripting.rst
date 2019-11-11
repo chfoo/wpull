@@ -13,6 +13,12 @@ load it with ``--plugin-script`` option.
 
 The plugin interface provides two type of callbacks: hooks and events.
 
+Callbacks receive a number of internal objects from wpull, e.g.
+:py:class:`wpull.url.URLInfo` and
+:py:class:`wpull.pipeline.session.ItemSession`. It is strongly
+recommended not to modify these objects in any way in the callbacks.
+Doing so results in undefined behaviour.
+
 
 Hook
 ++++

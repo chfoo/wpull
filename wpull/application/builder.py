@@ -17,7 +17,7 @@ from wpull.application.tasks.network import NetworkSetupTask
 from wpull.application.tasks.plugin import PluginSetupTask
 from wpull.application.tasks.resmon import ResmonSetupTask, ResmonSleepTask
 from wpull.application.tasks.rule import URLFiltersSetupTask, \
-    URLFiltersPostURLImportSetupTask
+    URLFiltersPostURLImportSetupTask, URLPrioritiserSetupTask
 from wpull.application.tasks.sslcontext import SSLContextTask
 from wpull.application.tasks.stats import StatsStartTask, StatsStopTask
 from wpull.application.tasks.warc import WARCRecorderSetupTask, \
@@ -65,6 +65,7 @@ from wpull.scraper.sitemap import SitemapScraper
 from wpull.stats import Statistics
 from wpull.url import URLInfo
 from wpull.urlfilter import DemuxURLFilter
+from wpull.urlprioritiser import URLPrioritiser
 from wpull.urlrewrite import URLRewriter
 from wpull.waiter import LinearWaiter
 from wpull.warc.recorder import WARCRecorder
@@ -123,6 +124,7 @@ class Builder(object):
             'SitemapScraper': SitemapScraper,
             'Statistics': Statistics,
             'URLInfo': URLInfo,
+            'URLPrioritiser': URLPrioritiser,
             'URLTable': URLTableHookWrapper,
             'URLTableImplementation': SQLURLTable,
             'URLRewriter': URLRewriter,
@@ -160,6 +162,7 @@ class Builder(object):
             AppSource(app_session),
             [
                 LoggingSetupTask(),
+                PluginSetupTask(),
                 DatabaseSetupTask(),
                 ParserSetupTask(),
                 WARCVisitsTask(),
@@ -167,6 +170,7 @@ class Builder(object):
                 ResmonSetupTask(),
                 StatsStartTask(),
                 URLFiltersSetupTask(),
+                URLPrioritiserSetupTask(),
                 NetworkSetupTask(),
                 ClientSetupTask(),
                 WARCRecorderSetupTask(),
@@ -175,7 +179,6 @@ class Builder(object):
                 ProxyServerSetupTask(),
                 CoprocessorSetupTask(),
                 LinkConversionSetupTask(),
-                PluginSetupTask(),
                 InputURLTask(),
                 URLFiltersPostURLImportSetupTask(),
             ])
@@ -226,6 +229,7 @@ class Builder(object):
                 download_stop_pipeline, conversion_pipeline, app_stop_pipeline
             ))
         pipeline_series.concurrency_pipelines.add(download_pipeline)
+        pipeline_series.concurrency = self._args.concurrent
 
         return pipeline_series
 

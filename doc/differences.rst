@@ -60,6 +60,7 @@ Missing in Wget
 * ``--no-use-internal-ca-certs``
 * ``--warc-append``
 * ``--warc-move``: Move WARC files out of the way for resuming a crashed crawl.
+* ``--warc-split-meta``
 * ``--page-requisites-level``: Prevent infinite downloading of misconfurged server resources such as HTML served under a image.
 * ``--sitemaps``: Discover more URLs.
 * ``--hostnames``: Wget simply matches the endings when using ``--domains`` instead of matching each part of the hostname.
@@ -69,6 +70,8 @@ Missing in Wget
 * ``--proxy-server``
 * ``--proxy-server-address``
 * ``--proxy-server-port``
+* ``--priority-regex``: Control in which order the URLs are retrieved.
+* ``--priority-domain``
 * ``--phantomjs``
 * ``--phantomjs-exe``
 * ``--phantomjs-max-time``

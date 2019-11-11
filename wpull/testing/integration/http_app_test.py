@@ -91,7 +91,7 @@ class TestHTTPGoodApp(HTTPGoodAppTestCase):
     def test_many_page_with_some_fail(self):
         arg_parser = AppArgumentParser()
         args = arg_parser.parse_args([
-            self.get_url('/blog/'),
+            self.get_url('/blog_half500/'),
             '--no-parent',
             '--recursive',
             '--page-requisites',
@@ -518,7 +518,7 @@ class TestHTTPGoodApp(HTTPGoodAppTestCase):
     def test_quota(self):
         arg_parser = AppArgumentParser()
         args = arg_parser.parse_args([
-            self.get_url('/blog/'),
+            self.get_url('/blog_half500/'),
             '--recursive',
             '--quota', '1',
         ])

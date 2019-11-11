@@ -67,6 +67,7 @@ class WARCRecorderSetupTask(ItemTask[AppSession]):
                 digests=args.warc_digests,
                 cdx=args.warc_cdx,
                 max_size=args.warc_max_size,
+                split_meta=args.warc_split_meta,
                 move_to=args.warc_move,
                 url_table=url_table,
                 software_string=software_string,

@@ -98,6 +98,15 @@ class ItemSession(object):
             return
 
         url_properties = url_properites or URLProperties()
+        if url_properties.priority is None:
+            prioritiser = self.app_session.factory['URLPrioritiser']
+            url_record = self.child_url_record(url,
+                                               inline=url_properties.inline_level is not None,
+                                               link_type=url_properties.link_type,
+                                               post_data=url_data.post_data,
+                                               level=url_properties.level)
+            url_properties.priority = prioritiser.get_priority(url_info, url_record)
+
         url_data = url_data or URLData()
         add_url_info = AddURLInfo(url, url_properties, url_data)
 
@@ -107,11 +116,12 @@ class ItemSession(object):
             self.app_session.factory['URLTable'].add_many(self._add_url_batch)
             self._add_url_batch.clear()
 
-    def add_child_url(self, url: str, inline: bool=False,
-                      link_type: Optional[LinkType]=None,
-                      post_data: Optional[str]=None,
-                      level: Optional[int]=None,
-                      replace: bool=False):
+    def add_child_url(self, url: str, inline: bool = False,
+                      link_type: Optional[LinkType] = None,
+                      post_data: Optional[str] = None,
+                      level: Optional[int] = None,
+                      priority: Optional[int] = None,
+                      replace: bool = False):
         '''Add links scraped from the document with automatic values.
 
         Args:
@@ -139,6 +149,7 @@ class ItemSession(object):
         url_properties.parent_url = self.url_record.url
         url_properties.root_url = self.url_record.root_url or self.url_record.url
         url_properties.link_type = link_type
+        url_properties.priority = priority
         url_data = URLData()
         url_data.post_data = post_data
 
@@ -185,12 +196,9 @@ class URLItemSource(ItemSource[ItemSession]):
     @asyncio.coroutine
     def get_item(self) -> Optional[ItemSession]:
         try:
-            url_record = self._app_session.factory['URLTable'].check_out(Status.todo)
+            url_record = self._app_session.factory['URLTable'].check_out()
         except NotFound:
-            try:
-                url_record = self._app_session.factory['URLTable'].check_out(Status.error)
-            except NotFound:
-                return None
+            return None
 
         item_session = ItemSession(self._app_session, url_record)
         return item_session

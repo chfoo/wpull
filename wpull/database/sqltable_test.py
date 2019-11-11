@@ -46,9 +46,7 @@ class TestDatabase(unittest.TestCase):
             self.assertEqual('http://example.com', url_record.parent_url)
             self.assertEqual('http://example.net', url_record.root_url)
 
-        url_record = url_table.check_out(
-            Status.todo,
-        )
+        url_record = url_table.check_out()
 
         self.assertEqual(Status.in_progress, url_record.status)
 
@@ -68,6 +66,38 @@ class TestDatabase(unittest.TestCase):
         hostnames = tuple(url_table.get_hostnames())
         self.assertEqual(1, len(hostnames))
         self.assertEqual('example.com', hostnames[0])
+
+    def test_order_priority_status(self):
+        url_table = self.get_url_table()
+
+        urls = [
+            # (URL, priority, status)
+            ('http://example.org/', 1, Status.error.value),
+            ('http://example.org/foo', 0, Status.todo.value),
+            ('http://example.org/bar', 1, Status.todo.value),
+            ('http://example.org/baz', 2, Status.error.value),
+        ]
+        add = []
+        for url, priority, status in urls:
+            url_properties = URLProperties()
+            url_properties.parent_url = 'http://example.com'
+            url_properties.level = 0
+            url_properties.root_url = 'http://example.net'
+            url_properties.priority = priority
+            url_properties.status = status
+            add.append(AddURLInfo(url, url_properties, None))
+
+        url_table.add_many(add)
+
+        self.assertEqual(
+            [url_table.check_out().url for i in range(4)],
+            [
+                'http://example.org/baz',
+                'http://example.org/bar',
+                'http://example.org/',
+                'http://example.org/foo',
+            ]
+        )
 
     def test_warc_visits(self):
         url_table = self.get_url_table()

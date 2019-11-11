@@ -42,6 +42,7 @@ WARCRecorderParams = namedlist.namedtuple(
         ('digests', True),
         ('cdx', None),
         ('max_size', None),
+        ('split_meta', False),
         ('move_to', None),
         ('url_table', None),
         ('software_string', None)
@@ -60,6 +61,9 @@ Args:
     cdx (bool): If True, a CDX file will be written.
     max_size (int): If provided, output files are named like
         ``name-00000.ext`` and the log file will be in ``name-meta.ext``.
+    split_meta (bool): If True and max_size is set, the log WARC is split
+        together with the data WARC, producing pairs of ``name-#####.ext``
+        and ``name-#####-meta.ext``.
     move_to (str): If provided, completed WARC files and CDX files will be
         moved to the given directory
     url_table (:class:`.database.URLTable`): If given, then ``revist``
@@ -87,6 +91,7 @@ class WARCRecorder(object):
         self._prefix_filename = filename
         self._params = params or WARCRecorderParams()
         self._warcinfo_record = None
+        self._meta_sequence_num = 0
         self._sequence_num = 0
         self._log_temp_file = None
         self._log_handler = None
@@ -95,8 +100,8 @@ class WARCRecorder(object):
 
         self._check_journals_and_maybe_raise()
 
-        if params.log:
-            self._setup_log()
+        if self._params.log:
+            self._flush_log()
 
         self._start_new_warc_file()
 
@@ -112,13 +117,16 @@ class WARCRecorder(object):
 
     def _start_new_warc_file(self, meta=False):
         '''Create and set as current WARC file.'''
-        if self._params.max_size and not meta and self._params.appending:
+        if self._params.max_size and (not meta or self._params.split_meta) and self._params.appending:
             while True:
-                self._warc_filename = self._generate_warc_filename()
+                self._warc_filename = self._generate_warc_filename(meta=meta)
 
                 if os.path.exists(self._warc_filename):
                     _logger.debug('Skip {0}', self._warc_filename)
-                    self._sequence_num += 1
+                    if meta:
+                        self._meta_sequence_num += 1
+                    else:
+                        self._sequence_num += 1
                 else:
                     break
         else:
@@ -138,7 +146,10 @@ class WARCRecorder(object):
         if self._params.max_size is None:
             sequence_name = ''
         elif meta:
-            sequence_name = '-meta'
+            if self._params.split_meta:
+                sequence_name = '-{:05d}-meta'.format(self._meta_sequence_num)
+            else:
+                sequence_name = '-meta'
         else:
             sequence_name = '-{0:05d}'.format(self._sequence_num)
 
@@ -181,34 +192,83 @@ class WARCRecorder(object):
             bytes(info_fields) + b'\r\n')
         self._warcinfo_record.compute_checksum()
 
-    def _setup_log(self):
-        '''Set up the logging file.'''
+    def _flush_log(self, closing=False):
+        '''Flush the logging
+
+        If there is already a logger and we want to split the meta WARC: write a
+        meta WARC, delete the temporary log, and move the meta WARC if necessary.
+        Then, set up the logger anew.
+
+        If closing is True (i.e. this is the last call to _flush_log), only write
+        the meta WARC etc. and don't set up a new logger.
+
+        Note that the "write a meta WARC" part will have the side effect of setting
+        self._warc_filename.
+        '''
         logger = logging.getLogger()
-        formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        self._log_temp_file = NamedTemporaryFile(
-            prefix='tmp-wpull-warc-',
-            dir=self._params.temp_dir,
-            suffix='.log.gz',
-            delete=False,
-        )
-        self._log_temp_file.close()  # For Windows
+        if self._log_handler and (self._params.split_meta or closing):
+            self._log_handler.flush()
 
-        self._log_handler = handler = logging.StreamHandler(
-            io.TextIOWrapper(
-                gzip.GzipFile(
-                    filename=self._log_temp_file.name, mode='wb'
-                ),
-                encoding='utf-8'
+            logger.removeHandler(self._log_handler)
+            self._log_handler.stream.close()
+
+            log_record = WARCRecord()
+            log_record.block_file = gzip.GzipFile(
+                filename=self._log_temp_file.name
             )
-        )
+            log_record.set_common_fields('resource', 'text/plain')
 
-        logger.setLevel(logging.DEBUG)
-        logger.debug('Wpull needs the root logger level set to DEBUG.')
+            log_record.fields['WARC-Target-URI'] = 'urn:X-wpull:log'
 
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
-        handler.setLevel(logging.INFO)
+            if self._params.max_size is not None: # Only create a separate meta WARC if max_size is set
+                self._start_new_warc_file(meta=True)
+
+            self.set_length_and_maybe_checksums(log_record)
+            self.write_record(log_record)
+
+            log_record.block_file.close()
+
+            try:
+                os.remove(self._log_temp_file.name)
+            except OSError:
+                _logger.exception('Could not close log temp file.')
+
+            self._log_temp_file = None
+
+            self._log_handler.close()
+            self._log_handler = None
+
+            if self._params.move_to is not None:
+                self._move_file_to_dest_dir(self._warc_filename)
+
+            self._meta_sequence_num += 1
+
+        if not self._log_handler and not closing:
+            formatter = logging.Formatter(
+                '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            self._log_temp_file = NamedTemporaryFile(
+                prefix='tmp-wpull-warc-',
+                dir=self._params.temp_dir,
+                suffix='.log.gz',
+                delete=False,
+            )
+            self._log_temp_file.close()  # For Windows
+
+            self._log_handler = handler = logging.StreamHandler(
+                io.TextIOWrapper(
+                    gzip.GzipFile(
+                        filename=self._log_temp_file.name, mode='wb'
+                    ),
+                    encoding='utf-8'
+                )
+            )
+
+            logger.setLevel(logging.DEBUG)
+            logger.debug('Wpull needs the root logger level set to DEBUG.')
+
+            handler.setFormatter(formatter)
+            logger.addHandler(handler)
+            handler.setLevel(logging.INFO)
 
     def listen_to_http_client(self, client: HTTPClient):
         client.event_dispatcher.add_listener(HTTPClient.ClientEvent.new_session,
@@ -285,6 +345,9 @@ class WARCRecorder(object):
 
             if self._params.move_to is not None:
                 self._move_file_to_dest_dir(self._warc_filename)
+
+            if self._params.log:
+                self._flush_log()
 
             _logger.debug('Starting new warc file due to max size.')
             self._start_new_warc_file()
@@ -364,45 +427,11 @@ class WARCRecorder(object):
 
     def close(self):
         '''Close the WARC file and clean up any logging handlers.'''
-        if self._log_temp_file:
-            self._log_handler.flush()
+        if self._params.max_size is not None and self._params.move_to is not None:
+            self._move_file_to_dest_dir(self._warc_filename)
 
-            logger = logging.getLogger()
-            logger.removeHandler(self._log_handler)
-            self._log_handler.stream.close()
-
-            log_record = WARCRecord()
-            log_record.block_file = gzip.GzipFile(
-                filename=self._log_temp_file.name
-            )
-            log_record.set_common_fields('resource', 'text/plain')
-
-            log_record.fields['WARC-Target-URI'] = \
-                'urn:X-wpull:log'
-
-            if self._params.max_size is not None:
-                if self._params.move_to is not None:
-                    self._move_file_to_dest_dir(self._warc_filename)
-
-                self._start_new_warc_file(meta=True)
-
-            self.set_length_and_maybe_checksums(log_record)
-            self.write_record(log_record)
-
-            log_record.block_file.close()
-
-            try:
-                os.remove(self._log_temp_file.name)
-            except OSError:
-                _logger.exception('Could not close log temp file.')
-
-            self._log_temp_file = None
-
-            self._log_handler.close()
-            self._log_handler = None
-
-            if self._params.move_to is not None:
-                self._move_file_to_dest_dir(self._warc_filename)
+        if self._params.log:
+            self._flush_log(closing=True)
 
         if self._cdx_filename and self._params.move_to is not None:
             self._move_file_to_dest_dir(self._cdx_filename)

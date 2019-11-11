@@ -138,7 +138,12 @@ class BaseFileWriterSession(BaseWriterSession):
         try:
             last_modified = email.utils.parsedate(last_modified)
         except ValueError:
-            _logger.exception('Failed to parse date.')
+            _logger.exception('Failed to parse last-modified date.')
+            return
+
+        if last_modified is None:
+            # email.utils.parsedate returns None if parsing fails
+            _logger.error('Failed to parse last-modified date: {!r} -> None.'.format(response.fields.get('Last-Modified')))
             return
 
         last_modified = time.mktime(last_modified)

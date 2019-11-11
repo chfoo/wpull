@@ -38,6 +38,13 @@ install:
   - travis_retry pip install -q coverage python-coveralls warcat youtube-dl
 
 
+# print versions of the involved software
+before_script:
+  - python --version
+  - pip --version
+  - pip freeze
+
+
 # command to run tests
 script:
   - pip install . -t thematrix/ --no-dependencies

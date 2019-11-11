@@ -14,7 +14,7 @@ from sqlalchemy.sql.expression import insert, update, select, delete, \
 
 from wpull.database.base import BaseURLTable, NotFound
 from wpull.database.sqlmodel import QueuedURL, URLString, DBBase, WARCVisit, \
-    Hostname, QueuedFile
+    Hostname, QueuedFile, indexedby
 from wpull.pipeline.item import Status
 from wpull.url import URLInfo
 
@@ -46,7 +46,7 @@ class BaseSQLURLTable(BaseURLTable):
 
     def get_one(self, url):
         with self._session() as session:
-            result = session.query(QueuedURL).filter_by(url=url).first()
+            result = session.query(QueuedURL).filter_by(url=url).order_by(QueuedURL.priority.desc(), QueuedURL.id).first()
 
             if not result:
                 raise NotFound()
@@ -134,17 +134,13 @@ class BaseSQLURLTable(BaseURLTable):
 
         return added_urls
 
-    def check_out(self, filter_status, level=None):
+    def check_out(self):
         with self._session() as session:
-            if level is None:
-                url_record = session.query(QueuedURL).filter_by(
-                    status=filter_status.value).first()
-            else:
-                url_record = session.query(QueuedURL)\
-                    .filter(
-                        QueuedURL.status == filter_status.value,
-                        QueuedURL.level < level,
-                ).first()
+            table = indexedby(QueuedURL, 'ix_queued_urls_priority_status_id')
+            url_record = session.query(table) \
+                .filter(table.status.in_((Status.todo.value, Status.error.value))) \
+                .order_by(table.priority.desc(), table.status.desc(), table.id) \
+                .first()
 
             if not url_record:
                 raise NotFound()

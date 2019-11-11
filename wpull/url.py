@@ -27,6 +27,9 @@ RELATIVE_SCHEME_DEFAULT_PORTS = {
     'wss': 443,
 }
 
+SPECIAL_SCHEMES = ['ftp', 'file', 'gopher', 'http', 'https', 'ws', 'wss']
+'''Special schemes as defined by the URL Standard'''
+
 C0_CONTROL_SET = frozenset(chr(i) for i in range(0, 0x1f + 1))
 '''Characters from 0x00 to 0x1f inclusive'''
 
@@ -164,11 +167,12 @@ class URLInfo(object):
             remaining = remaining[2:]
 
         path_index = remaining.find('/')
+        path_backslash_index = remaining.find('\\')
         query_index = remaining.find('?')
         fragment_index = remaining.find('#')
 
         try:
-            index_tuple = (path_index, query_index, fragment_index)
+            index_tuple = (path_index, path_backslash_index, query_index, fragment_index)
             authority_index = min(num for num in index_tuple if num >= 0)
         except ValueError:
             authority_index = len(remaining)
@@ -183,6 +187,11 @@ class URLInfo(object):
             path_index = len(remaining)
 
         path = remaining[authority_index + 1:path_index] or '/'
+
+        if scheme in SPECIAL_SCHEMES:
+            # Backslashes in the path of special URLs are treated like slashes
+            # except they cause a validation error, which is ignored.
+            path = path.replace('\\', '/')
 
         if fragment_index >= 0:
             query_index = fragment_index
@@ -244,9 +253,10 @@ class URLInfo(object):
             hostname, sep, port = host.rpartition(':')
 
         if sep:
-            port = int(port)
-            if port < 0 or port > 65535:
-                raise ValueError('Port number invalid')
+            if port != '':
+                port = int(port)
+                if port < 0 or port > 65535:
+                    raise ValueError('Port number invalid')
         else:
             hostname = port
             port = None
@@ -479,7 +489,7 @@ def normalize_path(path, encoding='utf-8'):
     '''
     if not path.startswith('/'):
         path = '/' + path
-    path = percent_encode(flatten_path(path, flatten_slashes=True), encoding=encoding)
+    path = percent_encode(flatten_path(path), encoding=encoding)
     return uppercase_percent_encoding(path)
 
 

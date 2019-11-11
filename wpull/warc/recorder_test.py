@@ -327,6 +327,143 @@ class TestWARC(unittest.TestCase, TempDirMixin):
         self.validate_warc('asdf-00001.warc')
         self.validate_warc('asdf-meta.warc')
 
+    def test_warc_recorder_max_size_split_meta(self):
+        file_prefix = 'asdf'
+        cdx_filename = 'asdf.cdx'
+
+        warc_recorder = WARCRecorder(
+            file_prefix,
+            params=WARCRecorderParams(
+                compress=False,
+                extra_fields=[('Extra-field', 'my_extra_field')],
+                cdx=True,
+                max_size=1,
+                split_meta=True,
+            )
+        )
+
+        # This produces three data and meta WARCs (00000 to 00002). The reason
+        # being that a new WARC is started after the second request. That last
+        # WARC does not contain any data, but the third meta WARC contains the
+        # "FINISHED" log message.
+
+        _logger.info('Fetching http://example.com/1')
+        request = HTTPRequest('http://example.com/1')
+        request.address = ('0.0.0.0', 80)
+        response = HTTPResponse(200, 'OK')
+        response.body = Body()
+
+        with wpull.util.reset_file_offset(response.body):
+            response.body.write(b'KITTEH DOGE')
+
+        session = warc_recorder.new_http_recorder_session()
+        session.begin_request(request)
+        session.request_data(request.to_bytes())
+        session.end_request(request)
+        session.begin_response(response)
+        session.response_data(response.to_bytes())
+        session.response_data(response.body.content())
+        session.end_response(response)
+        # Note, the normal "Fetched" log message is also emitted before the
+        # session is closed. Otherwise, it'd end up in the next meta WARC.
+        _logger.info('Fetched http://example.com/1')
+        session.close()
+
+        _logger.info('Fetching http://example.com/2')
+        request = HTTPRequest('http://example.com/2')
+        request.address = ('0.0.0.0', 80)
+        response = HTTPResponse(200, 'OK')
+        response.body = Body()
+
+        with wpull.util.reset_file_offset(response.body):
+            response.body.write(b'DOGE KITTEH')
+
+        session = warc_recorder.new_http_recorder_session()
+        session.begin_request(request)
+        session.request_data(request.to_bytes())
+        session.end_request(request)
+        session.begin_response(response)
+        session.response_data(response.to_bytes())
+        session.response_data(response.body.content())
+        session.end_response(response)
+        _logger.info('Fetched http://example.com/2')
+        session.close()
+
+        _logger.info('FINISHED')
+
+        warc_recorder.close()
+
+        self.assertTrue(os.path.exists('asdf-00000.warc'))
+        self.assertTrue(os.path.exists('asdf-00001.warc'))
+        self.assertTrue(os.path.exists('asdf-00002.warc'))
+        self.assertTrue(os.path.exists('asdf-00000-meta.warc'))
+        self.assertTrue(os.path.exists('asdf-00001-meta.warc'))
+        self.assertTrue(os.path.exists('asdf-00002-meta.warc'))
+        self.assertTrue(os.path.exists(cdx_filename))
+
+        with open('asdf-00000.warc', 'rb') as in_file:
+            warc_file_content = in_file.read()
+
+        self.assertTrue(warc_file_content.startswith(b'WARC/1.0'))
+        self.assertIn(b'WARC-Type: warcinfo', warc_file_content)
+        self.assertIn(b'KITTEH DOGE', warc_file_content)
+
+        with open('asdf-00001.warc', 'rb') as in_file:
+            warc_file_content = in_file.read()
+
+        self.assertTrue(warc_file_content.startswith(b'WARC/1.0'))
+        self.assertIn(b'WARC-Type: warcinfo', warc_file_content)
+        self.assertIn(b'DOGE KITTEH', warc_file_content)
+
+        with open('asdf-00002.warc', 'rb') as in_file:
+            warc_file_content = in_file.read()
+
+        self.assertTrue(warc_file_content.startswith(b'WARC/1.0'))
+        self.assertIn(b'WARC-Type: warcinfo', warc_file_content)
+        self.assertNotIn(b'WARC-Type: re', warc_file_content) # No request or response
+
+        with open(cdx_filename, 'rb') as in_file:
+            cdx_file_content = in_file.read()
+
+        cdx_lines = cdx_file_content.split(b'\n')
+        cdx_labels = cdx_lines[0].strip().split(b' ')
+
+        print(cdx_lines)
+
+        self.assertEqual(4, len(cdx_lines))
+        self.assertEqual(10, len(cdx_labels))
+
+        self.assertIn(b'http://example.com/1', cdx_file_content)
+        self.assertIn(b'http://example.com/2', cdx_file_content)
+
+        with open('asdf-00000-meta.warc', 'rb') as in_file:
+            meta_file_content = in_file.read()
+
+        self.assertIn(b'Fetching http://example.com/1', meta_file_content)
+        self.assertIn(b'Fetched http://example.com/1', meta_file_content)
+        self.assertNotIn(b'http://example.com/2', meta_file_content)
+        self.assertNotIn(b'FINISHED', meta_file_content)
+
+        with open('asdf-00001-meta.warc', 'rb') as in_file:
+            meta_file_content = in_file.read()
+
+        self.assertNotIn(b'http://example.com/1', meta_file_content)
+        self.assertIn(b'Fetching http://example.com/2', meta_file_content)
+        self.assertIn(b'Fetched http://example.com/2', meta_file_content)
+        self.assertNotIn(b'FINISHED', meta_file_content)
+
+        with open('asdf-00002-meta.warc', 'rb') as in_file:
+            meta_file_content = in_file.read()
+
+        self.assertIn(b'FINISHED', meta_file_content)
+
+        self.validate_warc('asdf-00000.warc')
+        self.validate_warc('asdf-00001.warc')
+        self.validate_warc('asdf-00002.warc')
+        self.validate_warc('asdf-00000-meta.warc')
+        self.validate_warc('asdf-00001-meta.warc')
+        self.validate_warc('asdf-00002-meta.warc')
+
     def test_warc_recorder_rollback(self):
         warc_filename = 'asdf.warc'
         warc_prefix = 'asdf'
@@ -592,6 +729,49 @@ class TestWARC(unittest.TestCase, TempDirMixin):
         self.assertTrue(os.path.exists('./blah/asdf-00000.warc'))
         self.assertTrue(os.path.exists('./blah/asdf-00001.warc'))
         self.assertTrue(os.path.exists('./blah/asdf-meta.warc'))
+        self.assertTrue(os.path.exists('./blah/' + cdx_filename))
+
+    def test_warc_move_max_size_split_meta(self):
+        file_prefix = 'asdf'
+        cdx_filename = 'asdf.cdx'
+
+        os.mkdir('./blah/')
+
+        warc_recorder = WARCRecorder(
+            file_prefix,
+            params=WARCRecorderParams(
+                compress=False,
+                cdx=True,
+                move_to='./blah/',
+                max_size=1,
+                split_meta = True,
+            ),
+        )
+
+        request = HTTPRequest('http://example.com/1')
+        request.address = ('0.0.0.0', 80)
+        response = HTTPResponse(200, 'OK')
+        response.body = Body()
+
+        with wpull.util.reset_file_offset(response.body):
+            response.body.write(b'BLAH')
+
+        session = warc_recorder.new_http_recorder_session()
+        session.begin_request(request)
+        session.request_data(request.to_bytes())
+        session.end_request(request)
+        session.begin_response(response)
+        session.response_data(response.to_bytes())
+        session.response_data(response.body.content())
+        session.end_response(response)
+        session.close()
+
+        warc_recorder.close()
+
+        self.assertTrue(os.path.exists('./blah/asdf-00000.warc'))
+        self.assertTrue(os.path.exists('./blah/asdf-00001.warc'))
+        self.assertTrue(os.path.exists('./blah/asdf-00000-meta.warc'))
+        self.assertTrue(os.path.exists('./blah/asdf-00001-meta.warc'))
         self.assertTrue(os.path.exists('./blah/' + cdx_filename))
 
     def test_warc_max_size_and_append(self):

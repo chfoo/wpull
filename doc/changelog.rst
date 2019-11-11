@@ -10,6 +10,51 @@ Summary of notable changes.
 Unreleased
 ==========
 
+* Fixed: Plugins are now loaded early again, restoring behaviour in version 1.x and allowing plugins to override wpull components again.
+* Fixed: `--concurrent` option had no effect since version 2.0.
+* Fixed: wpull no longer flattens consecutive slashes in the path component of URLs, in line with RFC 3986, related standards, and behaviour of other software (wget and browsers).
+* Fixed: Backslashes in URL paths are now treated like forward slashes in accordance with the URL Standard and behaviour of browsers.
+* Fixed: ASCII tab and newline characters are now stripped from URLs, as required by the URL Standard.
+* Fixed: Empty ports in URLs are now handled correctly, i.e. as if no colon appeared in the host.
+* Added: URL prioritisation through `--priority-*` options and a `get_priority` hook.
+* Added: Meta WARC splitting whenever data WARCs are split using the `--warc-split-meta` option.
+* Changed: `wpull.pipeline.pipeline.ItemSource` now deals in item generation coroutines rather than items directly.
+* Changed: `wpull.database.base.BaseURLTable` and its subclasses now have to take care of returning the URLs in the expected order; the two arguments to their `check_out` method have been removed.
+
+
+Backwards incompatibility
++++++++++++++++++++++++++
+
+Plugins are now loaded very early in the initialisation again (as in version 1.x). This means that the various components of wpull
+are not yet initialised at the time `WpullPlugin.activate()` is executed. Plugins written for versions 2.0 through 2.0.3 which use
+instances directly will need to be changed to instead replace the relevant class in WpullPlugin.app_session.factory.class_map`.
+
+Any direct usage of the `ItemSource`, `Worker`, or `Producer` classes in `wpull.pipeline.pipeline` has to be adapted to handle item
+generation coroutines instead of items. The `Pipeline` and `PipelineSeries` classes in the same module are not affected.
+
+The `*URLTable.check_out` method no longer receives status and level filter arguments. It is now the URLTable's duty to return URLs
+in the correct order. For the default implementation, this means first sorted by highest priority, then todos before errors.
+
+
+2.0.3 (2017-05-15)
+==================
+
+* Removed: HTTP CONNECT support
+* Fixed: `ValueError` crash from URL parsing
+
+Note: This version was only available on the fork by falconkirtaran until 2018-10-10.
+
+
+2.0.2 (2017-01-12)
+==================
+
+* Fixed: Deadlock when wpull is finished.
+* Fixed: `AttributeError` crash on some SSL connections.
+* Fixed: `--warc-max-size` option had no effect since version 2.0.
+* Fixed: `AttributeError` crash from asyncio reading from a closed connection.
+
+Note: This version was only available on the fork by falconkirtaran until 2018-10-10.
+
 
 2.0.1 (2016-06-21)
 ==================

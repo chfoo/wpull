@@ -49,8 +49,8 @@ class URLTableHookWrapper(BaseURLTable, HookableMixin):
 
         return added_urls
 
-    def check_out(self, filter_status, filter_level=None):
-        url_record = self.url_table.check_out(filter_status, filter_level)
+    def check_out(self):
+        url_record = self.url_table.check_out()
         self._queue_counter -= 1
 
         self.event_dispatcher.notify(PluginFunctions.dequeued_url, url_record.url_info, url_record)

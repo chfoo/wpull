@@ -4,6 +4,7 @@ import argparse
 import gettext
 import logging
 import os
+import re
 import ssl
 import sys
 
@@ -84,6 +85,28 @@ class AppHelpFormatter(argparse.HelpFormatter):
                 if action.option_strings or action.nargs in defaulting_nargs:
                     help += _(' (default: %(default)s)')
         return help
+
+
+class AppendPriorityFilterAction(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string):
+        if option_string == '--priority-regex':
+            filter_type = 'regex'
+            try:
+                re.compile(values[0])
+            except re.error:
+                raise ValueError('invalid regular expression {s!r}'.format(values[0]))
+            filter_arg = values[0]
+            filter_priority = int(values[1])
+        elif option_string == '--priority-domain':
+            filter_type = 'domain'
+            filter_arg = values[0] #TODO: Check if it's a valid domain name?
+            filter_priority = int(values[1])
+        else:
+            raise ValueError('unknown option string {s!r}'.format(option_string))
+
+        filter_list = getattr(namespace, self.dest, [])
+        filter_list.append((filter_type, filter_arg, filter_priority))
+        setattr(namespace, self.dest, filter_list)
 
 
 class AppArgumentParser(argparse.ArgumentParser):
@@ -205,6 +228,7 @@ class AppArgumentParser(argparse.ArgumentParser):
         self._add_recursive_args()
         self._add_accept_args()
         self._add_proxy_server_args()
+        self._add_priority_args()
         self._add_phantomjs_args()
         self._add_youtube_dl_args()
 
@@ -1091,6 +1115,12 @@ class AppArgumentParser(argparse.ArgumentParser):
             default=os.curdir,
             help=_('use temporary DIRECTORY for preparing WARC files'),
         )
+        group.add_argument(
+            '--warc-split-meta',
+            action='store_true',
+            default=False,
+            help=_('when used with --warc-max-size, split the meta WARC as well, not just the data WARC'),
+        )
 
     def _add_recursive_args(self):
         group = self.add_argument_group(_('recursion'))
@@ -1302,6 +1332,26 @@ class AppArgumentParser(argparse.ArgumentParser):
             metavar='PORT',
             help=_('bind the proxy server port to PORT')
         )
+
+    def _add_priority_args(self):
+        group = self.add_argument_group(_('prioritisation'))
+        group.add_argument(
+            '--priority-regex',
+            nargs=2,
+            metavar=('REGEX', 'PRIORITY'),
+            dest='priority_filters',
+            action=AppendPriorityFilterAction,
+            help=_('assign PRIORITY to URLs matching REGEX'),
+        )
+        group.add_argument(
+            '--priority-domain',
+            nargs=2,
+            metavar=('DOMAIN', 'PRIORITY'),
+            dest='priority_filters',
+            action=AppendPriorityFilterAction,
+            help=_('assign PRIORITY to URLs under DOMAIN'),
+        )
+        self.set_defaults(priority_filters = [])
 
     def _add_phantomjs_args(self):
         group = self.add_argument_group(_('PhantomJS'))

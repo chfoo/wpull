@@ -76,6 +76,7 @@ class URLProperties(URLDatabaseMixin):
                            'level', 'inline_level', 'link_type', 'priority')
 
     def __init__(self):
+        super().__init__()
         self.parent_url = None
         self.root_url = None
         self.status = None
@@ -105,6 +106,7 @@ class URLData(URLDatabaseMixin):
     database_attributes = ('post_data',)
 
     def __init__(self):
+        super().__init__()
         self.post_data = None
 
 
@@ -117,6 +119,7 @@ class URLResult(URLDatabaseMixin):
     database_attributes = ('status_code', 'filename')
 
     def __init__(self):
+        super().__init__()
         self.status_code = None
         self.filename = None
 
@@ -136,3 +139,20 @@ class URLRecord(URLProperties, URLData, URLResult):
         '''Return URL Info for this URL'''
         return URLInfo.parse(self.url)
 
+    @classmethod
+    def root_record(cls, url):
+        '''Generate a URLRecord instance for a root entry'''
+        record = cls()
+        record.url = url
+        record.parent_url = url
+        record.root_url = url
+        record.status = Status.todo
+        record.try_count = 0
+        record.level = 0
+        record.inline_level = None
+        record.link_type = None
+        record.priority = None
+        record.post_data = None
+        record.status_code = None
+        record.filename = None
+        return record

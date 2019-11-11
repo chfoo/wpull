@@ -2,7 +2,7 @@ import unittest
 
 from wpull.pipeline.item import LinkType
 from wpull.scraper.util import clean_link_soup, parse_refresh, is_likely_link, \
-    is_unlikely_link, identify_link_type
+    is_unlikely_link, identify_link_type, urljoin_safe
 
 
 class TestUtil(unittest.TestCase):
@@ -105,3 +105,9 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(LinkType.media, identify_link_type('hello.png'))
         self.assertEqual(LinkType.media, identify_link_type('hello.flv'))
         self.assertFalse(identify_link_type('hello.exe'))
+
+    def test_urljoin_safe(self):
+        self.assertEqual(
+            'https://example.com/foo/bar',
+            urljoin_safe('https://example.com/foo/baz', '\r\n\tba\t\nr')
+        )

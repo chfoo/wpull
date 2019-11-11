@@ -83,6 +83,8 @@ class PluginSetupTask(ItemTask[AppSession]):
         session.plugin_manager = PluginManager(plugin_locator=locator)
         session.plugin_manager.collectPlugins()
 
+        activated_plugins = []
+
         for plugin_info in session.plugin_manager.getAllPlugins():
             if plugin_info.path.startswith(internal_plugin_path):
                 _logger.debug(__(
@@ -102,6 +104,9 @@ class PluginSetupTask(ItemTask[AppSession]):
             if plugin_info.plugin_object.should_activate():
                 session.plugin_manager.activatePluginByName(plugin_info.name)
                 self._connect_plugin_hooks(session, plugin_info.plugin_object)
+                activated_plugins.append(plugin_info.plugin_object)
+
+        HookableMixin.set_plugins(activated_plugins)
 
     @classmethod
     def _get_candidate_instances(cls, session: AppSession):
