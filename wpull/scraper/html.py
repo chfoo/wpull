@@ -269,6 +269,7 @@ class ElementWalker(object):
     LINK_ATTRIBUTES = frozenset([
         'action', 'archive', 'background', 'cite', 'classid',
         'codebase', 'data', 'href', 'longdesc', 'profile', 'src',
+        'poster',
         'usemap',
         'dynsrc', 'lowsrc',
     ])
@@ -298,6 +299,9 @@ class ElementWalker(object):
         'table': {'background': ATTR_INLINE},
         'td': {'background': ATTR_INLINE},
         'th': {'background': ATTR_INLINE},
+        'video': {'src': ATTR_INLINE, 'poster': ATTR_INLINE},
+        'audio': {'src': ATTR_INLINE, 'poster': ATTR_INLINE},
+        'source': {'src': ATTR_INLINE},
     }
     '''Mapping of element tag names to attributes containing links.'''
     DYNAMIC_ATTRIBUTES = ('onkey', 'oncli', 'onmou')
