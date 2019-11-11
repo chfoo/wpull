@@ -129,10 +129,7 @@ class Mixin(object):
             elements = tuple(reader.iter_elements(data, encoding=name))
 
             html_element = elements[0]
-            if isinstance(html_parser, LxmlHTMLParser):
-                self.assertEqual('html', html_element.tag)
-            else:
-                self.assertEqual('img', html_element.tag)
+            self.assertEqual('html', html_element.tag)
 
     def test_html_layout(self):
         html_parser = self.get_html_parser()
@@ -160,13 +157,9 @@ class Mixin(object):
         self.assertEqual('body', elements[5].tag)
         self.assertEqual('img', elements[6].tag)
 
-        if isinstance(html_parser, LxmlHTMLParser):
-            self.assertEqual('img', elements[7].tag)
-            self.assertEqual('body', elements[8].tag)
-            self.assertEqual('html', elements[9].tag)
-        else:
-            self.assertEqual('body', elements[7].tag)
-            self.assertEqual('html', elements[8].tag)
+        self.assertEqual('img', elements[7].tag)
+        self.assertEqual('body', elements[8].tag)
+        self.assertEqual('html', elements[9].tag)
 
     def test_html_early_html(self):
         reader = HTMLReader(self.get_html_parser())
