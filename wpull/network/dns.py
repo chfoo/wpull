@@ -254,16 +254,14 @@ class Resolver(HookableMixin):
         try:
             answer = yield from event_loop.run_in_executor(None, query)
         except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer) as error:
-            # dnspython doesn't raise an instance with a message, so use the
-            # class name instead.
             raise DNSNotFound(
                 'DNS resolution failed: {error}'
-                .format(error=wpull.util.get_exception_message(error))
+                .format(error=str(error))
             ) from error
         except dns.exception.DNSException as error:
             raise NetworkError(
                 'DNS resolution error: {error}'
-                .format(error=wpull.util.get_exception_message(error))
+                .format(error=str(error))
             ) from error
         else:
             return answer

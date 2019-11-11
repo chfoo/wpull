@@ -7,7 +7,7 @@ from dns.resolver import NoNameservers
 
 from wpull.util import (datetime_str, python_version, filter_pem,
                         parse_iso8601_str, is_ascii, close_on_error,
-                        get_exception_message, GzipPickleStream)
+                        GzipPickleStream)
 
 
 DEFAULT_TIMEOUT = 30
@@ -70,44 +70,6 @@ class TestUtil(unittest.TestCase):
         my_object = MyObject()
         self.assertRaises(ValueError, my_object.oops)
         self.assertTrue(my_object.closed)
-
-    def test_get_exception_message(self):
-        self.assertEqual('oops', get_exception_message(ValueError('oops')))
-
-        try:
-            raise ValueError('oops')
-        except ValueError as error:
-            self.assertEqual('oops', get_exception_message(error))
-
-        self.assertEqual('ValueError', get_exception_message(ValueError()))
-
-        try:
-            raise ValueError
-        except ValueError as error:
-            self.assertEqual('ValueError', get_exception_message(error))
-
-        try:
-            raise ValueError()
-        except ValueError as error:
-            self.assertEqual('ValueError', get_exception_message(error))
-
-        self.assertEqual(
-            'NoNameservers', get_exception_message(NoNameservers())
-        )
-
-        try:
-            raise NoNameservers
-        except NoNameservers as error:
-            self.assertEqual(
-                'NoNameservers', get_exception_message(error)
-            )
-
-        try:
-            raise NoNameservers()
-        except NoNameservers as error:
-            self.assertEqual(
-                'NoNameservers', get_exception_message(error)
-            )
 
     def test_pickle_stream_filename(self):
         with tempfile.TemporaryDirectory() as temp_dir:
