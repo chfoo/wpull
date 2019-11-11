@@ -15,7 +15,6 @@ from wpull.errors import ProtocolError
 from wpull.application.hook import HookableMixin, Actions
 from wpull.pipeline.item import URLRecord
 from wpull.pipeline.session import ItemSession
-from wpull.processor.coprocessor.phantomjs import PhantomJSCoprocessor
 from wpull.processor.coprocessor.youtubedl import YoutubeDlCoprocessor
 from wpull.protocol.http.request import Request, Response
 from wpull.protocol.http.web import LoopType, WebClient
@@ -449,14 +448,6 @@ class WebProcessorSession(BaseProcessorSession):
             instance.body.close()
 
     def _run_coprocessors(self, request: Request, response: Response):
-        phantomjs_coprocessor = self._item_session.app_session.factory.get('PhantomJSCoprocessor')
-
-        if phantomjs_coprocessor:
-            phantomjs_coprocessor = cast(PhantomJSCoprocessor, phantomjs_coprocessor)
-            yield from phantomjs_coprocessor.process(
-                self._item_session, request, response, self._file_writer_session
-            )
-
         youtube_dl_coprocessor = self._item_session.app_session.factory.get('YoutubeDlCoprocessor')
 
         if youtube_dl_coprocessor:

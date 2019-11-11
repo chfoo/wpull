@@ -7,7 +7,6 @@ import tornado.netutil
 
 from wpull.backport.logging import BraceMessage as __
 from wpull.cookie import BetterMozillaCookieJar
-from wpull.processor.coprocessor.phantomjs import PhantomJSParams
 from wpull.namevalue import NameValueRecord
 from wpull.pipeline.pipeline import ItemTask
 from wpull.pipeline.session import ItemSession
@@ -18,7 +17,6 @@ import wpull.string
 from wpull.protocol.http.stream import Stream as HTTPStream
 import wpull.util
 import wpull.processor.coprocessor.youtubedl
-import wpull.driver.phantomjs
 import wpull.application.hook
 
 _logger = logging.getLogger(__name__)
@@ -224,7 +222,7 @@ class ProxyServerSetupTask(ItemTask[AppSession]):
     def process(self, session: AppSession):
         '''Build MITM proxy server.'''
         args = session.args
-        if not (args.phantomjs or args.youtube_dl or args.proxy_server):
+        if not (args.youtube_dl or args.proxy_server):
             return
 
         proxy_server = session.factory.new(
@@ -388,80 +386,14 @@ class CoprocessorSetupTask(ItemTask[ItemSession]):
     @asyncio.coroutine
     def process(self, session: AppSession):
         args = session.args
-        if args.phantomjs or args.youtube_dl or args.proxy_server:
+        if args.youtube_dl or args.proxy_server:
             proxy_port = session.proxy_server_port
             assert proxy_port
-
-        if args.phantomjs:
-            phantomjs_coprocessor = self._build_phantomjs_coprocessor(session, proxy_port)
-        else:
-            phantomjs_coprocessor = None
 
         if args.youtube_dl:
             youtube_dl_coprocessor = self._build_youtube_dl_coprocessor(session, proxy_port)
         else:
             youtube_dl_coprocessor = None
-
-    @classmethod
-    def _build_phantomjs_coprocessor(cls, session: AppSession, proxy_port: int):
-        '''Build proxy server and PhantomJS client. controller, coprocessor.'''
-        page_settings = {}
-        default_headers = NameValueRecord()
-
-        for header_string in session.args.header:
-            default_headers.parse(header_string)
-
-        # Since we can only pass a one-to-one mapping to PhantomJS,
-        # we put these last since NameValueRecord.items() will use only the
-        # first value added for each key.
-        default_headers.add('Accept-Language', '*')
-
-        if not session.args.http_compression:
-            default_headers.add('Accept-Encoding', 'identity')
-
-        default_headers = dict(default_headers.items())
-
-        if session.args.read_timeout:
-            page_settings['resourceTimeout'] = session.args.read_timeout * 1000
-
-        page_settings['userAgent'] = session.args.user_agent \
-                                     or session.default_user_agent
-
-        # Test early for executable
-        wpull.driver.phantomjs.get_version(session.args.phantomjs_exe)
-
-        phantomjs_params = PhantomJSParams(
-            wait_time=session.args.phantomjs_wait,
-            num_scrolls=session.args.phantomjs_scroll,
-            smart_scroll=session.args.phantomjs_smart_scroll,
-            snapshot=session.args.phantomjs_snapshot,
-            custom_headers=default_headers,
-            page_settings=page_settings,
-            load_time=session.args.phantomjs_max_time,
-        )
-
-        extra_args = [
-            '--proxy',
-            '{}:{}'.format(session.args.proxy_server_address, proxy_port),
-            '--ignore-ssl-errors=true'
-        ]
-
-        phantomjs_driver_factory = functools.partial(
-            session.factory.class_map['PhantomJSDriver'],
-            exe_path=session.args.phantomjs_exe,
-            extra_args=extra_args,
-        )
-
-        phantomjs_coprocessor = session.factory.new(
-            'PhantomJSCoprocessor',
-            phantomjs_driver_factory,
-            session.factory['ProcessingRule'],
-            phantomjs_params,
-            root_path=session.args.directory_prefix,
-            warc_recorder=session.factory.get('WARCRecorder'),
-        )
-
-        return phantomjs_coprocessor
 
     @classmethod
     def _build_youtube_dl_coprocessor(cls, session: AppSession, proxy_port: int):

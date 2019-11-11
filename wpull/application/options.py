@@ -205,7 +205,6 @@ class AppArgumentParser(argparse.ArgumentParser):
         self._add_recursive_args()
         self._add_accept_args()
         self._add_proxy_server_args()
-        self._add_phantomjs_args()
         self._add_youtube_dl_args()
 
     def _add_startup_args(self):
@@ -1301,54 +1300,6 @@ class AppArgumentParser(argparse.ArgumentParser):
             default=0,
             metavar='PORT',
             help=_('bind the proxy server port to PORT')
-        )
-
-    def _add_phantomjs_args(self):
-        group = self.add_argument_group(_('PhantomJS'))
-        group.add_argument(
-            '--phantomjs',
-            action='store_true',
-            help=_('use PhantomJS for loading dynamic pages'),
-        )
-        group.add_argument(
-            '--phantomjs-exe',
-            metavar='PATH',
-            default='phantomjs',
-            help=_('path of PhantomJS executable')
-        )
-        group.add_argument(
-            '--phantomjs-max-time',
-            default=900,
-            type=self.int_0_inf,
-            help=_('maximum duration of PhantomJS session')
-        )
-        group.add_argument(
-            '--phantomjs-scroll',
-            type=int,
-            default=20,
-            metavar='NUM',
-            help=_('scroll the page up to NUM times'),
-        )
-        group.add_argument(
-            '--phantomjs-wait',
-            type=float,
-            default=1.0,
-            metavar='SEC',
-            help=_('wait SEC seconds between page interactions'),
-        )
-        group.add_argument(
-            '--no-phantomjs-snapshot',
-            action='store_false',
-            dest='phantomjs_snapshot',
-            default=True,
-            help=_('don’t take dynamic page snapshots'),
-        )
-        group.add_argument(
-            '--no-phantomjs-smart-scroll',
-            action='store_false',
-            dest='phantomjs_smart_scroll',
-            default=True,
-            help=_('always scroll the page to maximum scroll count option'),
         )
 
     def _add_youtube_dl_args(self):

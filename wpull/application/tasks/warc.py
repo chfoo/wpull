@@ -9,7 +9,6 @@ from wpull.backport.logging import BraceMessage as __
 from wpull.pipeline.app import AppSession
 from wpull.pipeline.pipeline import ItemTask
 from wpull.warc.recorder import WARCRecorder, WARCRecorderParams
-import wpull.driver.phantomjs
 import wpull.processor.coprocessor.youtubedl
 import wpull.warc.format
 
@@ -42,11 +41,6 @@ class WARCRecorderSetupTask(ItemTask[AppSession]):
             extra_fields.append((name, value))
 
         software_string = WARCRecorder.DEFAULT_SOFTWARE_STRING
-
-        if args.phantomjs:
-            software_string += ' PhantomJS/{0}'.format(
-                wpull.driver.phantomjs.get_version(exe_path=args.phantomjs_exe)
-            )
 
         if args.youtube_dl:
             software_string += ' youtube-dl/{0}'.format(

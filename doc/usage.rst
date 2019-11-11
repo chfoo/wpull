@@ -83,20 +83,6 @@ The requests will go through the proxy to Wpull's HTTP client (which can be reco
 It is not possible to use the proxy standalone at this time.
 
 
-PhantomJS Integration
-+++++++++++++++++++++
-
-**PhantomJS support is currently experimental.**
-
-``--phantomjs`` will enable PhantomJS integration.
-
-If a HTML document is encountered, Wpull will open the URL in PhantomJS. After the page is loaded, Wpull will try to scroll the page as specified by ``--phantomjs-scroll``. Then, the HTML DOM source is scraped for URLs as normal. HTML and PDF snapshots are taken by default.
-
-Currently, Wpull will *not do anything else* to manipulate the page such as clicking on links. As a consequence, Wpull with PhantomJS is *not* a complete solution for dynamic web pages yet!
-
-Storing console logs and alert messages inside the WARC file is not yet supported.
-
-
 youtube-dl Integration
 ++++++++++++++++++++++
 

@@ -69,12 +69,5 @@ Missing in Wget
 * ``--proxy-server``
 * ``--proxy-server-address``
 * ``--proxy-server-port``
-* ``--phantomjs``
-* ``--phantomjs-exe``
-* ``--phantomjs-max-time``
-* ``--phantomjs-scroll``
-* ``--phantomjs-wait``
-* ``--no-phantomjs-snapshot``
-* ``--no-phantomjs-smart-scroll``
 * ``--youtube-dl``
 * ``--youtube-dl-exe``

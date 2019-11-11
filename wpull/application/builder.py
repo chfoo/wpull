@@ -32,7 +32,6 @@ from wpull.converter import BatchDocumentConverter
 from wpull.cookie import DeFactoCookiePolicy
 from wpull.database.sqltable import URLTable as SQLURLTable
 from wpull.database.wrap import URLTableHookWrapper
-from wpull.driver.phantomjs import PhantomJSDriver
 from wpull.network.bandwidth import BandwidthLimiter
 from wpull.network.dns import Resolver
 from wpull.network.pool import ConnectionPool
@@ -40,7 +39,6 @@ from wpull.path import PathNamer
 from wpull.pipeline.app import AppSource, AppSession
 from wpull.pipeline.pipeline import Pipeline, PipelineSeries
 from wpull.pipeline.session import URLItemSource
-from wpull.processor.coprocessor.phantomjs import PhantomJSCoprocessor
 from wpull.processor.coprocessor.proxy import ProxyCoprocessor
 from wpull.processor.coprocessor.youtubedl import YoutubeDlCoprocessor
 from wpull.processor.delegate import DelegateProcessor
@@ -106,8 +104,6 @@ class Builder(object):
             'HTMLScraper': HTMLScraper,
             'JavaScriptScraper': JavaScriptScraper,
             'PathNamer': PathNamer,
-            'PhantomJSDriver': PhantomJSDriver,
-            'PhantomJSCoprocessor': PhantomJSCoprocessor,
             'PipelineSeries': PipelineSeries,
             'ProcessingRule': ProcessingRule,
             'Processor': DelegateProcessor,

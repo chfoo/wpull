@@ -25,8 +25,6 @@ The following are optional:
 
 * `psutil` for monitoring disk space
 * `Manhole <https://pypi.python.org/pypi/manhole>`_ for a REPL debugging socket
-* `PhantomJS 1.9.8, 2.1 <http://phantomjs.org/>`_ for capturing interactive
-  JavaScript pages
 * `youtube-dl <https://rg3.github.io/youtube-dl/>`_ for downloading complex
   video streaming sites
 
@@ -115,10 +113,4 @@ at http://www.pip-installer.org/en/latest/installing.html to install
 pip. Note for Linux users, ensure you are executing the appropriate
 Python version when installing pip.
 
-
-PhantomJS (Optional)
-++++++++++++++++++++
-
-It is recommended to download a prebuilt binary build from
-http://phantomjs.org/download.html.
 

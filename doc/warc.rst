@@ -45,35 +45,6 @@ The response data is recorded as
 * WARC-Concurrent-To: a WARC Record ID of the Control Conversation
 
 
-PhantomJS
-+++++++++
-
-
-Snapshot
---------
-
-A PhantomJS Snapshot represents the state of the DOM at the time of capture.
-
-A Snapshot is recorded as
-
-* WARC-Type: ``resource``
-* WARC-Target-URI: ``urn:X-wpull:snapshot?url=URLHERE`` where ``URLHERE`` is a percent-encoded URL of the PhantomJS page.
-* Content-Type: one of ``application/pdf``, ``text/html``, ``image/png``
-* WARC-Concurrent-To: a WARC Record ID of a Snapshot Action Metadata.
-
-
-Snapshot Action Metadata
-------------------------
-
-An Action Metadata is a log of steps performed before a Snapshot is taken.
-
-It is recorded as
-
-* WARC-Type: ``metadata``
-* Content-Type: ``application/json``
-* WARC-Target-URI: ``urn:X-wpull:snapshot?url=URLHERE`` where ``URLHERE`` is a percent-encoded URL of the PhantomJS page.
-
-
 Wpull Metadata
 ++++++++++++++
 
